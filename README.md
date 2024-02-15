@@ -56,7 +56,7 @@ If this package aids in your research, kindly cite it as follows:
 ```
 
 ## License
-This package is released under the MIT License - see the [LICENSE](LICENSE) file for details.
+This package is released under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 Zeyu Ding - zeyu.ding@tu-dortmund.de

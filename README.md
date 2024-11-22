@@ -1,4 +1,3 @@
-```markdown
 # BayesPProbit
 
 <!-- badges: start -->
@@ -34,7 +33,6 @@ install.packages("devtools")
 
 # Install BayesPProbit from GitHub
 devtools::install_github("username/BayesPProbit")
-```
 
 *Note*: Replace `"username"` with the actual GitHub repository owner if necessary.
 

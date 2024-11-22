@@ -33,6 +33,7 @@ install.packages("devtools")
 
 # Install BayesPprobit from GitHub
 devtools::install_github("zeyudsai/BayesPprobit")
+```
 
 ## Usage
 

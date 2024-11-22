@@ -1,0 +1,47 @@
+# tests/testthat/test-coreset.R
+
+# test_that("compute_coreset returns correct structure", {
+#   X <- matrix(rnorm(50), nrow = 10, ncol = 5)
+#   y <- sample(0:1, 10, replace = TRUE)
+#
+#   coreset <- compute_coreset(
+#     X = X,
+#     y = y,
+#     coreset_size = 5,
+#     method = "uniform",
+#     sketch_size = NULL,
+#     p = 2
+#   )
+#
+#   expect_type(coreset, "list")
+#   expect_named(coreset, c("indices", "weights", "scores"))
+#
+#   expect_type(coreset$indices, "integer")
+#   expect_length(coreset$indices, 5)
+#
+#   expect_type(coreset$weights, "double")
+#   expect_length(coreset$weights, 5)
+#
+#   expect_type(coreset$scores, "double")
+#   expect_length(coreset$scores, 10)
+# })
+#
+# test_that("compute_coreset handles edge cases", {
+#   X <- matrix(rnorm(10), nrow = 2, ncol = 5)
+#   y <- c(0, 1)
+#
+#   expect_error(
+#     compute_coreset(X, y, coreset_size = 5, method = "uniform"),
+#     "coreset_size cannot be greater than the number of observations."
+#   )
+#
+#   expect_error(
+#     compute_coreset(X, y, coreset_size = 1, method = "invalid_method"),
+#     "Invalid method specified."
+#   )
+#
+#   expect_error(
+#     compute_coreset(X, y, coreset_size = 1, method = "uniform", p = -1),
+#     "`p` must be a single positive numeric value."
+#   )
+# })

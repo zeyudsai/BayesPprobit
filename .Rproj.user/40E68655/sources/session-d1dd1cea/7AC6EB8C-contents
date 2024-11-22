@@ -1,0 +1,6 @@
+# tests/testthat/testthat.R
+
+library(testthat)
+library(BayesPProbit)
+
+test_check("BayesPProbit")

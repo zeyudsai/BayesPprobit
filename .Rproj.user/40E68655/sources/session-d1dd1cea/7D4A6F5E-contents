@@ -1,0 +1,109 @@
+# Load necessary package
+library(pgnorm)
+
+# Define p_scale function
+p_scale <- function(p){
+  if (!is.numeric(p) || length(p) != 1 || p <= 0) {
+    stop("`p` must be a single positive numeric value.")
+  }
+  # Calculate the scale parameter to ensure proper normalization
+  result <- sqrt(gamma(1/p) / gamma(3/p))
+  return(result)
+}
+
+# Define custom quantile function since pgnorm::qgnorm is not available
+qgnorm_custom <- function(u, mu, alpha, beta, lower = -Inf, upper = Inf, tol = 1e-8, maxiter = 1000) {
+  if (!is.numeric(u) || any(u < 0) || any(u > 1)) {
+    stop("All elements of `u` must be between 0 and 1.")
+  }
+  if (!is.numeric(mu) || length(mu) != 1) {
+    stop("`mu` must be a single numeric value.")
+  }
+  if (!is.numeric(alpha) || length(alpha) != 1 || alpha <= 0) {
+    stop("`alpha` must be a single positive numeric value.")
+  }
+  if (!is.numeric(beta) || length(beta) != 1 || beta <= 0) {
+    stop("`beta` must be a single positive numeric value.")
+  }
+  
+  # Define a helper function to find the root for a single u
+  find_quantile <- function(prob) {
+    # Initial guesses based on the probability
+    if (prob < 0.5) {
+      lower_bound <- mu - 10 * alpha
+      upper_bound <- mu
+    } else {
+      lower_bound <- mu
+      upper_bound <- mu + 10 * alpha
+    }
+    
+    # Define the objective function
+    obj_fun <- function(x) {
+      pgnorm::pgnorm(x, alpha = alpha, beta = beta, mu = mu) - prob
+    }
+    
+    # Use tryCatch to handle cases where uniroot fails
+    quantile <- tryCatch({
+      uniroot(obj_fun, lower = lower_bound, upper = upper_bound, tol = tol, maxiter = maxiter)$root
+    }, error = function(e) {
+      warning(sprintf("Failed to find quantile for probability %.4f. Returning NA.", prob))
+      return(NA)
+    })
+    
+    return(quantile)
+  }
+  
+  # Vectorize the quantile finding
+  quantiles <- sapply(u, find_quantile)
+  return(quantiles)
+}
+
+# Define the qgnorm function using the custom quantile function
+qgnorm_custom_wrapper <- function(u, mu, alpha, beta) {
+  qgnorm_custom(u, mu, alpha, beta)
+}
+
+# Define the range of x values for plotting
+x_values <- seq(-5, 5, length.out = 1000)
+
+# Test for p = 2 (Standard Normal Distribution)
+p <- 2
+mu <- 0
+alpha <- p_scale(p)
+beta <- p
+
+# Compute dgnorm and dnorm densities
+dgnorm_p2 <- pgnorm::dpgnorm(x_values, mu = mu, 
+                             alpha = alpha, beta = beta)
+dnorm_values <- dnorm(x_values, mean = mu, sd = 1)
+
+# Plot to compare dgnorm and dnorm for p=2
+plot(x_values, dgnorm_p2, type = "l", col = "blue", lwd = 2, 
+     ylab = "Density", main = "Comparison of dgnorm (p=2) and dnorm")
+lines(x_values, dnorm_values, col = "red", lwd = 2, lty = 2)
+legend("topright", legend = c("dgnorm (p=2)", "dnorm"),
+       col = c("blue", "red"), lwd = 2, lty = c(1,2))
+
+# Test for p = 1 (Laplacian Distribution)
+p <- 1
+mu <- 0
+alpha <- p_scale(p)
+beta <- p
+
+# Compute dgnorm and Laplace densities
+dgnorm_p1 <- pgnorm::dgnorm(x_values, mu = mu, alpha = alpha, beta = beta)
+dlaplace <- 0.5 * exp(-abs(x_values))  # Laplace density with mu=0 and scale=1
+
+# Since dgnorm_p1 uses alpha = p_scale(p) = sqrt(gamma(1)/gamma(3)) = sqrt(1/2) ≈ 0.7071
+# To match Laplace with scale=1, we need to adjust alpha accordingly
+# Therefore, compare dgnorm_p1 scaled appropriately
+# The scaling factor is 1 / alpha = sqrt(2)
+
+dgnorm_p1_scaled <- dgnorm_p1 * alpha  # Scaling to match Laplace density
+
+# Plot to compare dgnorm and Laplace for p=1
+plot(x_values, dgnorm_p1_scaled, type = "l", col = "blue", lwd = 2, 
+     ylab = "Density", main = "Comparison of dgnorm (p=1) and Laplace")
+lines(x_values, dlaplace, col = "green", lwd = 2, lty = 2)
+legend("topright", legend = c("dgnorm (p=1) scaled", "Laplace"),
+       col = c("blue", "green"), lwd = 2, lty = c(1,2))

@@ -1,0 +1,17 @@
+test_that("compute_coreset handles inputs correctly", {
+  n <- 1000
+  d <- 3
+  X <- matrix(rnorm(n*d), n, d)
+  y <- rbinom(n, 1, 0.5)
+
+  cs <- compute_coreset(
+    X = X,
+    y = y,
+    coreset_size = 100
+  )
+
+  expect_type(cs, "list")
+  expect_length(cs$indices, 100)
+  expect_length(cs$weights, 100)
+  expect_true(all(is.finite(cs$weights)))
+})

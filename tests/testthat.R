@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(BayesPProbit)
+library(BayesPprobit)
 
-test_check("BayesPProbit")
+test_check("BayesPprobit")

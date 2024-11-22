@@ -67,8 +67,8 @@ y <- rbinom(n, 1, prob)
 
 # Fit model
 fit <- multi_chain(
-  n_sim = 2000,
-  burn_in = 500,
+  n_sim = 500,
+  burn_in = 100,
   X = X,
   y = y,
   initial_theta = rep(0, d),
@@ -76,7 +76,7 @@ fit <- multi_chain(
   mh_iter = 100,
   p_range = c(1, 3),
   step_size = 0.05,
-  n_chains = 3
+  n_chains = 2
 )
 ```
 
@@ -202,8 +202,8 @@ X <- scale(X)
 
 # Fit model
 fit_real <- multi_chain(
-  n_sim = 5000,
-  burn_in = 1000,
+  n_sim = 500,
+  burn_in = 100,
   X = X,
   y = y,
   initial_theta = rep(0, ncol(X)),
@@ -211,7 +211,7 @@ fit_real <- multi_chain(
   mh_iter = 100,
   p_range = c(1, 3),
   step_size = 0.05,
-  n_chains = 3
+  n_chains = 2
 )
 
 # Examine results

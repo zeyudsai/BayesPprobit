@@ -28,6 +28,8 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+URL: https://github.com/zeyudsai/BayesPprobit, https://link.springer.com/article/10.1007/s11634-024-00599-1
+BugReports: https://github.com/zeyudsai/BayesPprobit/issues
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 

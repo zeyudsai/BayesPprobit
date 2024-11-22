@@ -29,55 +29,17 @@ devtools::install_github("zeyudsai/BayesPprobit")
 # Check on CRAN's platforms
 
 rhub::check_for_cran()
-rhubv2
 
 devtools::run_examples()
 devtools::test()
 devtools::spell_check()
 devtools::build()
 
+install.packages("gitcreds")
+library(gitcreds)
+gitcreds_set()
+library(rhub)
+rhub_setup()
 
-# CITATION file for the BayesPprobit package
-
-citHeader("To cite the BayesPprobit package in publications use:")
-
-# Citation for the article
-citEntry(
-  entry = "Article",
-  title = "Scalable Bayesian p-Generalized Probit and Logistic Regression",
-  author = personList(
-    person("Zeyu", "Ding"),
-    person("Katja", "Ickstadt"),
-    person("Simon", "Omlor"),
-    person("Alexander", "Munteanu")
-  ),
-  year = "2024",
-  journal= "Advances in Data Analysis and Classification",
-  pages = "1-35",
-  doi = "10.1007/s11634-024-00599-1",
-  url = "https://doi.org/10.1007/s11634-024-00599-1",
-  textVersion = paste(
-    "Ding Z, Ickstadt K, Omlor S, Munteanu A (2023).",
-    "\"Scalable Bayesian p-Generalized Probit and Logistic Regression.\"",
-    "Advances in Data Analysis and Classification",
-    "doi.org/10.1007/s11634-024-00599-1"
-  )
-)
-# Citation for the package
-citEntry(
-  entry = "Manual",
-  title = "BayesPprobit: Bayesian p-Generalized Probit Regression",
-  author = personList(
-    person("Zeyu", "Ding"),
-    person("Katja", "Ickstadt"),
-    person("Simon", "Omlor"),
-    person("Alexander", "Munteanu")
-  ),
-  year = "2023",
-  note = "R package version 1.0.0",
-  url = "https://CRAN.R-project.org/package=BayesPprobit"
-)
-
-citFooter("Please cite both the article and the package if you use BayesPprobit in your research.")
-
+rhub_check()
 

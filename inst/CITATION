@@ -3,10 +3,11 @@
 citHeader("To cite the BayesPprobit package in publications use:")
 
 # Citation for the article
-citEntry(
+citation_article <- 
+bibentry(
   entry = "Article",
   title = "Scalable Bayesian p-Generalized Probit and Logistic Regression",
-  author = personList(
+  author = c(
     person("Zeyu", "Ding"),
     person("Katja", "Ickstadt"),
     person("Simon", "Omlor"),
@@ -25,10 +26,11 @@ citEntry(
   )
 )
 # Citation for the package
-citEntry(
+citation_package <- 
+bibentry(
   entry = "Manual",
   title = "BayesPprobit: Bayesian p-Generalized Probit Regression",
-  author = personList(
+  author = c(
     person("Zeyu", "Ding"),
     person("Katja", "Ickstadt"),
     person("Simon", "Omlor"),
@@ -38,5 +40,6 @@ citEntry(
   note = "R package version 1.0.0",
   url = "https://CRAN.R-project.org/package=BayesPprobit"
 )
+c(citation_article, citation_package)
 
 citFooter("Please cite both the article and the package if you use BayesPprobit in your research.")

@@ -1,4 +1,4 @@
-Package: BayesGProbit
+Package: BayesPProbit
 Title: Bayesian p-Generalized Probit Regression
 Version: 0.1.0
 Authors@R: 
@@ -22,6 +22,7 @@ Imports:
     mvtnorm,
     Matrix,
     truncnorm,
+    gnorm,
     coda
 Suggests:
     testthat (>= 3.0.0),
@@ -30,3 +31,5 @@ Suggests:
     ggplot2
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+
+

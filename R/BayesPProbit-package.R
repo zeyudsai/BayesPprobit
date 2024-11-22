@@ -22,5 +22,5 @@
 #' regression. Advances in Data Analysis and Classification.
 #'
 #' @docType package
-#' @name BayesPprobit
+#' @name BayesPProbit
 NULL

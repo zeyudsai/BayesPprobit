@@ -1,5 +1,3 @@
-# sampling.R
-
 #' @title Multi-chain MCMC Sampling for Bayesian p-Generalized Probit Model
 #' @description Performs multiple chain MCMC sampling for Bayesian p-generalized
 #'   probit regression using Metropolis-Hastings within Gibbs sampling.
@@ -9,7 +7,7 @@
 #' @param y Binary response vector (0/1)
 #' @param initial_theta Initial parameter values
 #' @param true_theta True parameter values (optional, for simulation studies)
-#' @param initial_p Initial value for the p parameter
+#' @param p Initial value for the p parameter
 #' @param mh_iter Number of Metropolis-Hastings iterations
 #' @param p_range Range for p parameter sampling, vector of (min, max)
 #' @param step_size Step size for MH proposals
@@ -29,18 +27,19 @@ multi_chain <- function(n_sim,
                         y,
                         initial_theta,
                         true_theta = NULL,
-                        initial_p = 2,
+                        p = 2,
                         mh_iter = 100,
-                        p_range = c(0.5, 5),
-                        step_size = 0.05,
+                        p_range = c(0.1, 5),
+                        step_size = 0.01,
                         n_chains = 5) {
+
   # Input validation
-  if (!is.matrix(X)) stop("X must be a matrix")
-  if (!is.numeric(y) || !all(y %in% c(0, 1)))
+  if(!methods::is(X, "matrix")) stop("X must be a matrix")
+  if(!is.numeric(y) || !all(y %in% c(0,1)))
     stop("y must be binary (0/1)")
-  if (length(y) != nrow(X))
+  if(length(y) != nrow(X))
     stop("Length of y must match rows of X")
-  if (length(initial_theta) != ncol(X))
+  if(length(initial_theta) != ncol(X))
     stop("Length of initial_theta must match cols of X")
 
   # Initialize storage
@@ -48,15 +47,18 @@ multi_chain <- function(n_sim,
   p_chains <- list()
   start_time <- proc.time()
 
+  # Create progress bar
+  pb <- utils::txtProgressBar(min = 0, max = n_chains, style = 3)
+
   # Run multiple chains
-  for (i in 1:n_chains) {
+  for(i in 1:n_chains) {
     result <- gibbs_sampler(
       n_sim = n_sim,
       burn_in = burn_in,
       X = X,
       y = y,
       initial_theta = initial_theta,
-      initial_p = initial_p,
+      p = p,
       mh_iter = mh_iter,
       p_range = p_range,
       step_size = step_size
@@ -64,23 +66,26 @@ multi_chain <- function(n_sim,
 
     beta_chains[[i]] <- result$beta_chain
     p_chains[[i]] <- result$p_chain
+
+    utils::setTxtProgressBar(pb, i)
   }
+  close(pb)
 
   # Compute runtime
   runtime <- proc.time() - start_time
 
   # Convert chains to mcmc objects for diagnostics
-  mcmc_chains <- coda::mcmc.list(lapply(beta_chains, function(chain) coda::mcmc(chain[-(1:burn_in), ])))
+  mcmc_chains <- coda::mcmc.list(lapply(beta_chains, coda::mcmc))
 
   # Compute convergence diagnostics
   gelman_diag <- coda::gelman.diag(mcmc_chains)
 
   # Compute summary statistics
-  post_beta <- matrix(0, nrow = n_chains, ncol = length(initial_theta))
+  post_beta <- matrix(0, nrow=n_chains, ncol=length(initial_theta))
   post_p <- numeric(n_chains)
 
-  for (i in 1:n_chains) {
-    post_beta[i, ] <- colMeans(beta_chains[[i]][-(1:burn_in), ])
+  for(i in 1:n_chains) {
+    post_beta[i,] <- colMeans(beta_chains[[i]][-(1:burn_in),])
     post_p[i] <- mean(p_chains[[i]][-(1:burn_in)])
   }
 
@@ -113,35 +118,32 @@ multi_chain <- function(n_sim,
 sample_latent <- function(X, theta, y, p) {
   n <- length(y)
   mu <- as.vector(X %*% theta)
+  alpha <- p_scale(p)
 
   # Initialize latent variables
   z <- numeric(n)
 
-  # Compute alpha and beta parameters for gnorm functions
-  alpha <- p_scale(p)
-  beta <- p
-
-  # For y = 1, sample from truncated distribution on (0, ∞)
-  idx_1 <- which(y == 1)
-  if (length(idx_1) > 0) {
-    z[idx_1] <- truncated_gnorm(
-      n = length(idx_1),
-      range = c(0, Inf),
-      mu = mu[idx_1],
-      alpha = alpha,
-      beta = beta
+  # For y = 0, sample from (-∞, 0)
+  idx_0 <- which(y == 0)
+  if(length(idx_0) > 0) {
+    z[idx_0] <- rtrunc_pggd(
+      n = length(idx_0),
+      mu = mu[idx_0],
+      p = p,
+      lower = -Inf,
+      upper = 0
     )
   }
 
-  # For y = 0, sample from truncated distribution on (-∞, 0)
-  idx_0 <- which(y == 0)
-  if (length(idx_0) > 0) {
-    z[idx_0] <- truncated_gnorm(
-      n = length(idx_0),
-      range = c(-Inf, 0),
-      mu = mu[idx_0],
-      alpha = alpha,
-      beta = beta
+  # For y = 1, sample from (0, ∞)
+  idx_1 <- which(y == 1)
+  if(length(idx_1) > 0) {
+    z[idx_1] <- rtrunc_pggd(
+      n = length(idx_1),
+      mu = mu[idx_1],
+      p = p,
+      lower = 0,
+      upper = Inf
     )
   }
 
@@ -155,25 +157,30 @@ sample_latent <- function(X, theta, y, p) {
 #' @param p Shape parameter
 #' @return Updated parameter vector
 #' @keywords internal
-
 update_theta <- function(X, z, p) {
-  # Use sirt::lq_fit to estimate coefficients
-  model <- sirt::lq_fit(y = z, X = X, pow = p, est_pow = FALSE)
-  beta_hat <- model$coefficients
+  # Get dimensions
+  n <- nrow(X)
+  d <- ncol(X)
 
-  # Compute Sigma = tau(p) * (X^T X)^{-1}
-  XtX <- crossprod(X)
-  XtX_inv <- solve(XtX)
-  tau_p <- p^(2 / p) * gamma(3 / p) / gamma(1 / p)
-  Sigma <- tau_p * XtX_inv
+  # Compute scale parameter
+  alpha <- p_scale(p)
 
-  # Sample from multivariate normal distribution
-  theta_new <- mvtnorm::rmvnorm(1, mean = beta_hat, sigma = Sigma)
+  # Solve linear system for mean
+  XtX <- Matrix::crossprod(X)
+  Xtz <- Matrix::crossprod(X, z)
+  mu <- Matrix::solve(XtX, Xtz)
 
-  return(as.vector(theta_new))
+  # Compute tau(p) = p^(2/p) * gamma(3/p)/gamma(1/p)
+  tau_p <- p^(2/p) * gamma(3/p)/gamma(1/p)
+
+  # Compute covariance matrix
+  Sigma <- tau_p * Matrix::solve(XtX)
+
+  # Draw from p-generalized normal
+  as.vector(mvtnorm::rmvnorm(1, mean = mu, sigma = Sigma))
 }
 
-#' @title Update Shape Parameter via Metropolis-Hastings
+#' @title Update Shape Parameter via MH
 #' @description Updates p parameter using Metropolis-Hastings step
 #' @param X Design matrix
 #' @param z Latent variables
@@ -190,42 +197,35 @@ update_p <- function(X, z, theta, p, mh_iter, p_range, step_size) {
   # Compute residuals
   resid <- z - as.vector(X %*% theta)
 
-  for (i in 1:mh_iter) {
+  # Current log-likelihood
+  ll_current <- sum(dgnorm(
+    resid,
+    mu = 0,
+    p = p_current,
+    log = TRUE
+  ))
+
+  for(i in 1:mh_iter) {
     # Propose new p value
-    p_prop <- runif(
+    p_prop <- stats::runif(
       1,
       min = max(p_range[1], p_current - step_size),
       max = min(p_range[2], p_current + step_size)
     )
 
-    # Compute alpha and beta parameters
-    alpha_current <- p_scale(p_current)
-    beta_current <- p_current
-    alpha_prop <- p_scale(p_prop)
-    beta_prop <- p_prop
-
-    # Compute log-likelihoods
-    ll_current <- sum(gnorm::dgnorm(
+    # Compute proposed log-likelihood
+    ll_prop <- sum(dgnorm(
       resid,
-      alpha = alpha_current,
-      beta = beta_current,
       mu = 0,
+      p = p_prop,
       log = TRUE
     ))
 
-    ll_prop <- sum(gnorm::dgnorm(
-      resid,
-      alpha = alpha_prop,
-      beta = beta_prop,
-      mu = 0,
-      log = TRUE
-    ))
-
-    # Acceptance probability
+    # Accept/reject
     log_ratio <- ll_prop - ll_current
-
-    if (is.finite(log_ratio) && log(runif(1)) < log_ratio) {
+    if(log(stats::runif(1)) < log_ratio) {
       p_current <- p_prop
+      ll_current <- ll_prop
     }
   }
 
@@ -239,43 +239,43 @@ update_p <- function(X, z, theta, p, mh_iter, p_range, step_size) {
 #' @param X Design matrix
 #' @param y Response vector
 #' @param initial_theta Initial parameters
-#' @param initial_p Initial p value
+#' @param p Initial p value
 #' @param mh_iter MH iterations
 #' @param p_range Range for p
 #' @param step_size Step size
 #' @return List of MCMC results
 #' @keywords internal
-gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta, initial_p,
-                          mh_iter, p_range, step_size) {
+gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta,
+                          p, mh_iter, p_range, step_size) {
+  # Get dimensions
   n <- nrow(X)
   d <- ncol(X)
 
   # Initialize
   theta <- initial_theta
-  p <- initial_p
   beta_chain <- matrix(0, nrow = n_sim, ncol = d)
   p_chain <- numeric(n_sim)
 
   # Store initial values
-  beta_chain[1, ] <- theta
+  beta_chain[1,] <- theta
   p_chain[1] <- p
 
   # Create progress bar
   pb <- utils::txtProgressBar(min = 0, max = n_sim, style = 3)
 
   # Main loop
-  for (t in 2:n_sim) {
+  for(t in 2:n_sim) {
     # Sample latent variables
     z <- sample_latent(X, theta, y, p)
-
-    # Update p
-    p <- update_p(X, z, theta, p, mh_iter, p_range, step_size)
 
     # Update theta
     theta <- update_theta(X, z, p)
 
+    # Update p
+    p <- update_p(X, z, theta, p, mh_iter, p_range, step_size)
+
     # Store results
-    beta_chain[t, ] <- theta
+    beta_chain[t,] <- theta
     p_chain[t] <- p
 
     # Update progress bar
@@ -288,7 +288,6 @@ gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta, initial_p,
     p_chain = p_chain
   )
 }
-
 
 #' @title Print Method for pgprobit Objects
 #' @description Prints a summary of the Bayesian p-Generalized Probit Regression results.
@@ -339,4 +338,3 @@ plot.pgprobit <- function(x, ...) {
                     ylab = "PSRF")
   graphics::abline(h = 1.1, col = "red", lty = 2)
 }
-

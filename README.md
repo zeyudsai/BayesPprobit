@@ -107,7 +107,7 @@ Comprehensive documentation is available for all functions within the package. A
 
 If you encounter any issues, have questions, or would like to contribute to the development of **BayesPprobit**, please visit our GitHub repository:
 
-[GitHub - zeyudsai/BayesPprobit](https://github.com/zeyudsaiBayesPprobit/BayesPprobit)
+[GitHub - zeyudsai/BayesPprobit](https://github.com/zeyudsai/BayesPprobit)
 
 Feel free to open issues or submit pull requests. Contributions are welcome!
 
@@ -123,7 +123,7 @@ This will provide the appropriate citation information, including authors and ve
 
 ## License
 
-**BayesPprobit** is licensed under the MIT License. See the [LICENSE](https://github.com/zeyudsai/BayesPprobit/blob/master/LICENSE) file for more details.
+**BayesPprobit** is licensed under the MIT License. See the [LICENSE](https://github.com/zeyudsai/BayesPprobit/blob/main/inst/CITATION) file for more details.
 
 ## Acknowledgments
 

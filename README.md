@@ -1,7 +1,7 @@
 # BayesPProbit
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/username/BayesPProbit/workflows/R-CMD-check/badge.svg)](https://github.com/username/BayesPProbit/actions)
+[![R-CMD-check](https://github.com/zeyudsai/BayesPProbit/workflows/R-CMD-check/badge.svg)](https://github.com/username/BayesPProbit/actions)
 [![CRAN status](https://www.r-pkg.org/badges/version/BayesPProbit)](https://CRAN.R-project.org/package=BayesPProbit)
 <!-- badges: end -->
 
@@ -32,9 +32,7 @@ Or install the development version from GitHub to access the latest features and
 install.packages("devtools")
 
 # Install BayesPProbit from GitHub
-devtools::install_github("username/BayesPProbit")
-
-*Note*: Replace `"username"` with the actual GitHub repository owner if necessary.
+devtools::install_github("zeyudsai/BayesPProbit")
 
 ## Usage
 
@@ -136,5 +134,3 @@ We would like to thank all contributors and users who have provided feedback and
 ```
 
 ---
-
-**Note**: Replace `"username"` with the actual GitHub username or organization that maintains the **BayesPProbit** package. Additionally, ensure that all links and references are updated to point to the correct locations in your repository.

@@ -35,7 +35,7 @@ truncated_gnorm(n, range, mu, alpha, beta)
 
 \item{q}{Numeric vector of quantiles}
 
-\item{lower.tail}{logical; if TRUE, probabilities are P\link{X ≤ x}}
+\item{lower.tail}{logical; if TRUE, probabilities are smaller than x}
 
 \item{n}{Number of observations}
 

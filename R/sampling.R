@@ -121,7 +121,7 @@ sample_latent <- function(X, theta, y, p) {
   alpha <- p_scale(p)
   beta <- p
 
-  # For y = 1, sample from truncated distribution on (0, ∞)
+  # For y = 1, sample from truncated distribution on (0, infinity)
   idx_1 <- which(y == 1)
   if (length(idx_1) > 0) {
     z[idx_1] <- truncated_gnorm(
@@ -133,7 +133,7 @@ sample_latent <- function(X, theta, y, p) {
     )
   }
 
-  # For y = 0, sample from truncated distribution on (-∞, 0)
+  # For y = 0, sample from truncated distribution on (-infinity, 0)
   idx_0 <- which(y == 0)
   if (length(idx_0) > 0) {
     z[idx_0] <- truncated_gnorm(
@@ -329,12 +329,12 @@ plot.pgprobit <- function(x, ...) {
   # Trace plots of some beta coefficients
   graphics::plot(x$beta_chains[[1]][,1], type = "l",
                  xlab = "Iteration", ylab = expression(beta[1]),
-                 main = "Trace Plot of β1")
+                 main = "Trace Plot of beta1")
 
   # Gelman-Rubin statistics
   grstat <- x$gelman_diag$psrf[,1]
   graphics::barplot(grstat,
-                    names.arg = paste("β", 1:length(grstat), sep=""),
+                    names.arg = paste("beta", 1:length(grstat), sep=""),
                     main = "Gelman-Rubin Statistics",
                     ylab = "PSRF")
   graphics::abline(h = 1.1, col = "red", lty = 2)

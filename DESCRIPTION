@@ -1,14 +1,13 @@
 Package: BayesPprobit
+Type: Package
 Title: Bayesian p-Generalized Probit Regression
-Version: 0.1.0
-Authors@R: 
-    person("Zeyu Ding", role = c("aut", "cre"),
-           email = "zeyu.ding@tu-dortmund.de")
+Version: 1.0.0
+Authors@R: c(
+    person(given = "Zeyu", family = "Ding", email = "zeyu.ding@tu-dortmund.de", role = c("aut", "cre")), person(given = "Katja", family = "Ickstadt", email = "ickstadt@statistik.tu-dortmund.de", role = "aut"), person(given = "Simon", family = "Omlor", email = "simon.omlor@tu-dortmund.de", role = "aut"),person(given = "Alexander", family = "Munteanu", email = "alexander.munteanu@tu-dortmund.de", role = "aut"))
 Description: Implements Bayesian p-generalized probit regression with 
     efficient data compression using coresets.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Depends:
@@ -16,8 +15,8 @@ Depends:
 Imports:
     stats,
     graphics,
-    grDevices,
     methods,
+    sirt,
     utils,
     mvtnorm,
     Matrix,

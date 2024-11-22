@@ -58,7 +58,7 @@ d_pgnorm <- function(x, mu = 0, p = 2, scale = NULL, log = FALSE) {
 
 #' @rdname pgnorm_functions
 #' @param q Numeric vector of quantiles
-#' @param lower.tail logical; if TRUE, probabilities are P[X ≤ x]
+#' @param lower.tail logical; if TRUE, probabilities are smaller than x
 #' @export
 p_pgnorm <- function(q, mu = 0, p = 2, scale = NULL, lower.tail = TRUE) {
   if (is.null(scale)) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/example.R
 \name{run_example}
 \alias{run_example}
-\title{Example Usage of BayesPProbit Package}
+\title{Example Usage of BayesPprobit Package}
 \usage{
 run_example()
 }

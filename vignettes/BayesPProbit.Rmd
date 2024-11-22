@@ -153,7 +153,7 @@ The sampling algorithm uses a Metropolis-Hastings within Gibbs scheme:
 It's important to check MCMC convergence using multiple diagnostics. The **BayesPprobit** package integrates with the `coda` package for convergence diagnostics:
 
 ```{r}
-#library(coda)
+library(coda)
 
 # Convert chains to mcmc.list
 beta_mcmc <- mcmc.list(lapply(fit$beta_chains, mcmc))

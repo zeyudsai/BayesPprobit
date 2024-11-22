@@ -21,14 +21,14 @@ Imports:
     utils,
     mvtnorm,
     Matrix,
+    ggplot2,
     truncnorm,
     gnorm,
     coda
 Suggests:
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown,
-    ggplot2
+    rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 

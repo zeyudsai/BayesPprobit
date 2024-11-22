@@ -2,22 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{p_scale}
 \alias{p_scale}
-\title{Scale Parameter for p-Generalized Gaussian Distribution}
+\title{Scale Parameter for p-GGD}
 \usage{
 p_scale(p)
 }
 \arguments{
-\item{p}{Numeric. Shape parameter.}
+\item{p}{Shape parameter}
 }
 \value{
-Numeric. Scale parameter value.
+Scale parameter value
 }
 \description{
-Computes the scale parameter for the p-generalized Gaussian distribution
-to maintain unit variance.
+Computes scale parameter for p-generalized Gaussian distribution
 }
-\details{
-The scale parameter is computed as (gamma(3/p)/gamma(1/p))^(1/2)
-to ensure unit variance of the p-GGD distribution.
-}
-\keyword{internal}

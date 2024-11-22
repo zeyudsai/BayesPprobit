@@ -6,7 +6,17 @@
 \usage{
 update_theta(X, z, p)
 }
+\arguments{
+\item{X}{Design matrix}
+
+\item{z}{Latent variables}
+
+\item{p}{Shape parameter}
+}
+\value{
+Updated parameter vector
+}
 \description{
-Update Parameters via Gibbs Step
+Updates regression coefficients using Gibbs sampling
 }
 \keyword{internal}

@@ -6,7 +6,19 @@
 \usage{
 sample_latent(X, theta, y, p)
 }
+\arguments{
+\item{X}{Design matrix}
+
+\item{theta}{Current parameter values}
+
+\item{y}{Binary response vector}
+
+\item{p}{Shape parameter}
+}
+\value{
+Vector of sampled latent variables
+}
 \description{
-Sample Latent Variables
+Samples latent variables from truncated p-GGD distribution
 }
 \keyword{internal}

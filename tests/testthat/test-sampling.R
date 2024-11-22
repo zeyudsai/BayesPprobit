@@ -12,12 +12,13 @@ test_that("multi_chain function returns correct structure", {
     X = X,
     y = y,
     initial_theta = initial_theta,
-    p = 2,
+    initial_p = 2,  # Correct argument
     mh_iter = 10,
     p_range = c(0.1, 5),
     step_size = 0.01,
     n_chains = 2
   )
+
 
   expect_type(result, "list")
   expect_length(result, 7)

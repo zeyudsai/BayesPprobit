@@ -2,11 +2,29 @@
 % Please edit documentation in R/sampling.R
 \name{update_p}
 \alias{update_p}
-\title{Update Shape Parameter via MH}
+\title{Update Shape Parameter via Metropolis-Hastings}
 \usage{
 update_p(X, z, theta, p, mh_iter, p_range, step_size)
 }
+\arguments{
+\item{X}{Design matrix}
+
+\item{z}{Latent variables}
+
+\item{theta}{Current parameters}
+
+\item{p}{Current p value}
+
+\item{mh_iter}{Number of MH iterations}
+
+\item{p_range}{Range for p values}
+
+\item{step_size}{Step size for proposals}
+}
+\value{
+Updated p value
+}
 \description{
-Update Shape Parameter via MH
+Updates p parameter using Metropolis-Hastings step
 }
 \keyword{internal}

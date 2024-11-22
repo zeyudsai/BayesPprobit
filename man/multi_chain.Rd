@@ -11,10 +11,10 @@ multi_chain(
   y,
   initial_theta,
   true_theta = NULL,
-  p = 2,
+  initial_p = 2,
   mh_iter = 100,
-  p_range = c(0.1, 5),
-  step_size = 0.01,
+  p_range = c(0.5, 5),
+  step_size = 0.05,
   n_chains = 5
 )
 }
@@ -31,7 +31,7 @@ multi_chain(
 
 \item{true_theta}{True parameter values (optional, for simulation studies)}
 
-\item{p}{Initial value for the p parameter}
+\item{initial_p}{Initial value for the p parameter}
 
 \item{mh_iter}{Number of Metropolis-Hastings iterations}
 

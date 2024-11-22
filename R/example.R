@@ -1,4 +1,4 @@
-#' @title Example Usage of BayesPProbit Package
+#' @title Example Usage of BayesPprobit Package
 #' @description Demonstrates basic usage of the package through examples
 #' @export
 run_example <- function() {
@@ -31,7 +31,7 @@ run_example <- function() {
 
   # Fit model with default settings
   fit_basic <- multi_chain(
-    n_sim = 2000,    # number of iterations
+    n_sim = 10000,    # number of iterations
     burn_in = 500,   # burn-in period
     X = X,
     y = y,
@@ -138,7 +138,7 @@ run_example <- function() {
 #' @export
 load_example_results <- function() {
   example_file <- system.file("examples", "example_results.rds",
-                              package = "BayesPProbit")
+                              package = "BayesPprobit")
   if (file.exists(example_file)) {
     readRDS(example_file)
   } else {
@@ -147,4 +147,4 @@ load_example_results <- function() {
 }
 
 # Run the example
-run_example()
+#run_example()

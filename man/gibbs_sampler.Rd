@@ -10,13 +10,35 @@ gibbs_sampler(
   X,
   y,
   initial_theta,
-  p,
+  initial_p,
   mh_iter,
   p_range,
   step_size
 )
 }
+\arguments{
+\item{n_sim}{Number of iterations}
+
+\item{burn_in}{Burn-in period}
+
+\item{X}{Design matrix}
+
+\item{y}{Response vector}
+
+\item{initial_theta}{Initial parameters}
+
+\item{initial_p}{Initial p value}
+
+\item{mh_iter}{MH iterations}
+
+\item{p_range}{Range for p}
+
+\item{step_size}{Step size}
+}
+\value{
+List of MCMC results
+}
 \description{
-Gibbs Sampler Implementation
+Internal implementation of Gibbs sampler for p-generalized probit model
 }
 \keyword{internal}

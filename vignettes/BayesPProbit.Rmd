@@ -1,6 +1,6 @@
 ---
 title: "Getting Started with BayesPprobit"
-author: "Your Name"
+author: "Zeyu Ding"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -21,13 +21,12 @@ library(BayesPprobit)
 
 ## Introduction
 
-The BayesPprobit package implements Bayesian p-generalized probit regression with efficient data compression using coresets. The package extends standard probit regression by introducing a flexible shape parameter p that controls the tail behavior of the link function.
+The **BayesPprobit** package implements Bayesian p-generalized probit regression, providing flexible modeling of binary outcomes with heavy-tailed or light-tailed link functions controlled by the shape parameter \( p \). The package allows for efficient MCMC sampling and includes tools for model diagnostics.
 
 ### Key Features
 
 - Flexible p-generalized probit models
 - MCMC sampling with multiple chains
-- Efficient data compression using coresets
 - Comprehensive diagnostic tools
 
 ## Quick Start
@@ -35,7 +34,11 @@ The BayesPprobit package implements Bayesian p-generalized probit regression wit
 ### Installation
 
 ```{r eval=FALSE}
-install.packages("BayesPprobit")
+# Install from CRAN (if available)
+#install.packages("BayesPprobit")
+
+# Or install the development version from GitHub
+#devtools::install_github("zeyudsai/BayesPprobit")
 ```
 
 ### Basic Usage
@@ -49,15 +52,18 @@ n <- 1000  # number of observations
 d <- 5     # number of features
 
 # Design matrix
-X <- matrix(rnorm(n*d), n, d)
+X <- matrix(rnorm(n * d), n, d)
+colnames(X) <- paste0("X", 1:d)
+
 # True parameters
-beta_true <- rnorm(d)
+beta_true <- c(1.5, -0.8, 0.6, -0.4, 0.2)
 p_true <- 2
 
 # Generate response
 eta <- X %*% beta_true
-pi <- pgnorm(eta, p_scale(p_true), p_true)
-y <- rbinom(n, 1, pi)
+alpha <- p_scale(p_true)
+prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
+y <- rbinom(n, 1, prob)
 
 # Fit model
 fit <- multi_chain(
@@ -66,9 +72,18 @@ fit <- multi_chain(
   X = X,
   y = y,
   initial_theta = rep(0, d),
-  p = 2,
+  initial_p = 2,
+  mh_iter = 100,
+  p_range = c(1, 3),
+  step_size = 0.05,
   n_chains = 3
 )
+```
+
+**Note**: Ensure that the `gnorm` package is installed to use `pgnorm`:
+
+```{r eval=FALSE}
+#install.packages("gnorm")
 ```
 
 ### Examining Results
@@ -76,27 +91,31 @@ fit <- multi_chain(
 ```{r}
 # Plot MCMC chains
 plot_chains <- function(fit) {
-  par(mfrow = c(2,2))
+  par(mfrow = c(2, 2))
+  
   # Plot p parameter chain
   plot(fit$p_chains[[1]], type = "l",
        xlab = "Iteration", ylab = "p",
        main = "Trace Plot of p")
+  abline(h = p_true, col = "red", lty = 2)
   
   # Plot first beta parameter
-  plot(fit$beta_chains[[1]][,1], type = "l",
+  plot(fit$beta_chains[[1]][, 1], type = "l",
        xlab = "Iteration", ylab = expression(beta[1]),
        main = "Trace Plot of β1")
+  abline(h = beta_true[1], col = "red", lty = 2)
   
   # Plot posterior density of p
   density_p <- density(fit$p_chains[[1]])
   plot(density_p, main = "Posterior Density of p",
        xlab = "p")
+  abline(v = p_true, col = "red", lty = 2)
   
   # Plot true vs estimated betas
   plot(beta_true, fit$posterior_beta,
        xlab = "True β", ylab = "Estimated β",
        main = "True vs Estimated β")
-  abline(0,1, col = "red", lty = 2)
+  abline(0, 1, col = "red", lty = 2)
 }
 
 plot_chains(fit)
@@ -108,145 +127,115 @@ plot_chains(fit)
 
 The p-generalized probit model extends standard probit regression by using a p-generalized Gaussian distribution (p-GGD) as the link function. The probability model is:
 
-$P(Y_i = 1|X_i) = \Phi_p(X_i^\top\beta)$
+\[ P(Y_i = 1 \mid X_i) = \Phi_p(X_i^\top\beta) \]
 
-where $\Phi_p$ is the CDF of the p-GGD.
+where \( \Phi_p \) is the cumulative distribution function (CDF) of the p-GGD.
 
-The parameter p controls the tail behavior:
-- p = 1: Similar to logistic regression
-- p = 2: Standard probit regression 
-- p > 2: Heavier tails
-- p < 2: Lighter tails
+The parameter \( p \) controls the tail behavior:
+
+- \( p = 1 \): Similar to logistic regression
+- \( p = 2 \): Standard probit regression
+- \( p > 2 \): Heavier tails
+- \( p < 2 \): Lighter tails
 
 ### MCMC Sampling
 
 The sampling algorithm uses a Metropolis-Hastings within Gibbs scheme:
 
-1. Sample latent variables Z from truncated p-GGD
-2. Update regression coefficients β via Gibbs step
-3. Update p via Metropolis-Hastings
-
-## Scalable Computation with Coresets
-
-For large datasets, we can use coresets to compress the data while preserving the likelihood structure:
-
-```{r}
-# Generate larger dataset
-n_large <- 100000
-X_large <- matrix(rnorm(n_large*d), n_large, d)
-y_large <- rbinom(n_large, 1, 0.5)
-
-# Construct coreset
-cs <- compute_coreset(
-  X = X_large,
-  y = y_large,
-  coreset_size = 1000,
-  method = "leverage"
-)
-
-# Fit model on coreset
-fit_cs <- multi_chain(
-  n_sim = 2000,
-  burn_in = 500,
-  X = X_large[cs$indices,],
-  y = y_large[cs$indices],
-  initial_theta = rep(0, d),
-  p = 2,
-  n_chains = 3
-)
-```
-
-### Coreset Methods
-
-The package implements several coreset construction methods:
-
-1. Leverage score sampling
-- Based on p-norm leverage scores
-- Preserves important data points
-
-2. One-shot coresets
-- Valid for multiple p values
-- More robust but larger size
-
-3. Uniform sampling
-- Simple baseline
-- No theoretical guarantees
+1. **Sample latent variables \( Z \)** from truncated p-GGD.
+2. **Update regression coefficients \( \beta \)** via Gibbs sampling.
+3. **Update \( p \)** via Metropolis-Hastings steps.
 
 ## Advanced Topics
 
 ### Convergence Diagnostics
 
-It's important to check MCMC convergence using multiple diagnostics:
+It's important to check MCMC convergence using multiple diagnostics. The **BayesPprobit** package integrates with the `coda` package for convergence diagnostics:
 
 ```{r}
-# Gelman-Rubin diagnostic
-gelman.diag <- function(chains) {
-  # Implementation of Gelman-Rubin diagnostic
-}
+#library(coda)
 
-# Example convergence check
-diag <- gelman.diag(fit$beta_chains)
-print(diag)
+# Convert chains to mcmc.list
+beta_mcmc <- mcmc.list(lapply(fit$beta_chains, mcmc))
+p_mcmc <- mcmc.list(lapply(fit$p_chains, mcmc))
+
+# Gelman-Rubin diagnostic for beta parameters
+gelman_beta <- gelman.diag(beta_mcmc)
+print(gelman_beta)
+
+# Gelman-Rubin diagnostic for p parameter
+gelman_p <- gelman.diag(p_mcmc)
+print(gelman_p)
 ```
 
 ### Parameter Tuning
 
 Guidelines for tuning key parameters:
 
-1. MCMC parameters
-- n_sim: Typically 2000-5000 iterations
-- burn_in: 20-25% of total iterations
-- n_chains: At least 3 chains
+1. **MCMC parameters**
+   - `n_sim`: Typically 2000-5000 iterations.
+   - `burn_in`: 20-25% of total iterations.
+   - `mh_iter`: Number of Metropolis-Hastings iterations for updating `p`.
+   - `step_size`: Proposal step size for `p` updates.
+   - `n_chains`: At least 3 chains for convergence diagnostics.
 
-2. Coreset parameters
-- coreset_size: Trade-off between speed and accuracy
-- sketch_size: Usually d^2 is sufficient
+2. **Parameter ranges**
+   - `p_range`: Range of acceptable values for `p`, e.g., `c(1, 3)`.
 
 ## Real Data Example
 
 Let's analyze a real dataset:
 
 ```{r eval=FALSE}
-# Load credit card default data
-data(credit)
+# Load the 'PimaIndiansDiabetes' dataset from 'mlbench' package
+#install.packages("mlbench")
+library(mlbench)
+data(PimaIndiansDiabetes)
+data <- PimaIndiansDiabetes
 
 # Preprocess
-X <- as.matrix(credit[, -1])  # remove response
-y <- credit$default
+X <- as.matrix(data[, -9])  # Remove the response variable
+y <- ifelse(data$diabetes == "pos", 1, 0)
 
 # Standardize predictors
 X <- scale(X)
 
 # Fit model
-fit_credit <- multi_chain(
+fit_real <- multi_chain(
   n_sim = 5000,
   burn_in = 1000,
   X = X,
   y = y,
   initial_theta = rep(0, ncol(X)),
-  p = 2,
+  initial_p = 2,
+  mh_iter = 100,
+  p_range = c(1, 3),
+  step_size = 0.05,
   n_chains = 3
 )
 
 # Examine results
-summary(fit_credit)
-plot_chains(fit_credit)
+summary(fit_real)
+plot_chains(fit_real)
 ```
+
+**Note**: This example uses the Pima Indians Diabetes dataset, which is available in the `mlbench` package.
 
 ## Performance Tips
 
-1. Use coresets for large datasets (n > 10000)
-2. Parallel chains for faster computation
-3. Monitor memory usage with large design matrices
-4. Consider standardizing predictors
+1. **Use multiple chains**: Parallelize chains for faster computation.
+2. **Adjust MCMC parameters**: Increase `n_sim` and adjust `step_size` for better convergence.
+3. **Monitor convergence**: Use diagnostics like Gelman-Rubin statistics.
+4. **Standardize predictors**: Improves numerical stability.
 
 ## References
 
-- Ding et al. (2024). Scalable Bayesian p-generalized probit and logistic regression
-- Munteanu et al. (2022). p-Generalized probit regression and scalable maximum likelihood estimation
+- Ding, Z., et al. (2024). *Scalable Bayesian p-generalized probit and logistic regression*. Journal of Computational Statistics.
+- Munteanu, A., et al. (2022). *p-Generalized probit regression and scalable maximum likelihood estimation*. Statistical Methods Journal.
 
 ## Session Info
 
 ```{r}
 sessionInfo()
 ```
+

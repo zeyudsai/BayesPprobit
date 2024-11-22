@@ -1,7 +1,8 @@
 # imports.R
 
 #' @import stats
-#' @importFrom mvtnorm rmvnorm pgnorm
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom gnorm dgnorm pgnorm qgnorm rgnorm
 #' @importFrom Matrix crossprod tcrossprod qr qr.Q qr.R solve
 #' @importFrom graphics par plot abline
 #' @importFrom methods is

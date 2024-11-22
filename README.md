@@ -1,15 +1,15 @@
-# BayesPProbit
+# BayesPprobit
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/zeyudsai/BayesPProbit/workflows/R-CMD-check/badge.svg)](https://github.com/username/BayesPProbit/actions)
-[![CRAN status](https://www.r-pkg.org/badges/version/BayesPProbit)](https://CRAN.R-project.org/package=BayesPProbit)
+[![R-CMD-check](https://github.com/zeyudsai/BayesPprobit/workflows/R-CMD-check/badge.svg)](https://github.com/zeyudsai/BayesPprobit/actions)
+[![CRAN status](https://www.r-pkg.org/badges/version/BayesPprobit)](https://CRAN.R-project.org/package=BayesPprobit)
 <!-- badges: end -->
 
 ## Overview
 
-**BayesPProbit** is an advanced R package that implements Bayesian p-generalized probit regression models, incorporating efficient data compression techniques through the use of coresets. This package is designed to handle large-scale binary classification problems by providing scalable and efficient Bayesian inference methods.
+**BayesPprobit** is an advanced R package that implements Bayesian p-generalized probit regression models, incorporating efficient data compression techniques through the use of coresets. This package is designed to handle large-scale binary classification problems by providing scalable and efficient Bayesian inference methods.
 
-Key features of **BayesPProbit** include:
+Key features of **BayesPprobit** include:
 
 - **Flexible Modeling**: Supports the p-generalized probit model, allowing for robustness to outliers and heavy-tailed data by adjusting the shape parameter \( p \).
 - **Efficient MCMC Sampling**: Implements Metropolis-Hastings within Gibbs sampling for posterior inference, optimized for performance.
@@ -19,10 +19,10 @@ Key features of **BayesPProbit** include:
 
 ## Installation
 
-You can install the stable version of **BayesPProbit** from CRAN:
+You can install the stable version of **BayesPprobit** from CRAN:
 
 ```r
-install.packages("BayesPProbit")
+install.packages("BayesPprobit")
 ```
 
 Or install the development version from GitHub to access the latest features and updates:
@@ -31,15 +31,15 @@ Or install the development version from GitHub to access the latest features and
 # Install devtools if you haven't already
 install.packages("devtools")
 
-# Install BayesPProbit from GitHub
-devtools::install_github("zeyudsai/BayesPProbit")
+# Install BayesPprobit from GitHub
+devtools::install_github("zeyudsai/BayesPprobit")
 
 ## Usage
 
-Below is a basic example demonstrating how to use **BayesPProbit** for Bayesian p-generalized probit regression:
+Below is a basic example demonstrating how to use **BayesPprobit** for Bayesian p-generalized probit regression:
 
 ```r
-library(BayesPProbit)
+library(BayesPprobit)
 
 # Simulate some data
 set.seed(123)
@@ -77,7 +77,7 @@ plot(fit)
 For more detailed examples and advanced usage, please refer to the package vignette:
 
 ```r
-vignette("BayesPProbit")
+vignette("BayesPprobit")
 ```
 
 ## Features
@@ -95,7 +95,7 @@ Comprehensive documentation is available for all functions within the package. A
 
 ```r
 # For a general overview
-?BayesPProbit
+?BayesPprobit
 
 # For specific functions
 ?multi_chain
@@ -104,25 +104,25 @@ Comprehensive documentation is available for all functions within the package. A
 
 ## Support and Contributions
 
-If you encounter any issues, have questions, or would like to contribute to the development of **BayesPProbit**, please visit our GitHub repository:
+If you encounter any issues, have questions, or would like to contribute to the development of **BayesPprobit**, please visit our GitHub repository:
 
-[GitHub - username/BayesPProbit](https://github.com/username/BayesPProbit)
+[GitHub - zeyudsai/BayesPprobit](https://github.com/zeyudsaiBayesPprobit/BayesPprobit)
 
 Feel free to open issues or submit pull requests. Contributions are welcome!
 
 ## Citation
 
-If you use **BayesPProbit** in your research or publications, please cite it as follows:
+If you use **BayesPprobit** in your research or publications, please cite it as follows:
 
 ```r
-citation("BayesPProbit")
+citation("BayesPprobit")
 ```
 
 This will provide the appropriate citation information, including authors and version number.
 
 ## License
 
-**BayesPProbit** is licensed under the MIT License. See the [LICENSE](https://github.com/username/BayesPProbit/blob/master/LICENSE) file for more details.
+**BayesPprobit** is licensed under the MIT License. See the [LICENSE](https://github.com/zeyudsai/BayesPprobit/blob/master/LICENSE) file for more details.
 
 ## Acknowledgments
 
@@ -130,7 +130,7 @@ We would like to thank all contributors and users who have provided feedback and
 
 ---
 
-*This README was generated to provide a comprehensive overview of the **BayesPProbit** package, its features, and how to get started. For more detailed information, please refer to the package documentation and vignettes.*
+*This README was generated to provide a comprehensive overview of the **BayesPprobit** package, its features, and how to get started. For more detailed information, please refer to the package documentation and vignettes.*
 ```
 
 ---

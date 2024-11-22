@@ -1,0 +1,32 @@
+Package: BayesGProbit
+Title: Bayesian p-Generalized Probit Regression
+Version: 0.1.0
+Authors@R: 
+    person("Your Name", role = c("aut", "cre"),
+           email = "your.email@example.com")
+Description: Implements Bayesian p-generalized probit regression with 
+    efficient data compression using coresets.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Depends:
+    R (>= 3.6.0)
+Imports:
+    stats,
+    graphics,
+    grDevices,
+    methods,
+    utils,
+    mvtnorm,
+    Matrix,
+    truncnorm,
+    coda
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    ggplot2
+Config/testthat/edition: 3
+VignetteBuilder: knitr

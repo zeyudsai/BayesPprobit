@@ -3,7 +3,7 @@
     "path": "~/Documents/GitHub/BayesPprobit/R/utils.R",
     "project_path": "R/utils.R",
     "type": "r_source",
-    "hash": "397204758",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1732279402635.0,
@@ -12,8 +12,8 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "59,39",
-        "scrollLine": "22"
+        "cursorPosition": "84,10",
+        "scrollLine": "11"
     },
     "folds": "13|24|18|0|\n27|67|56|0|\n62|73|80|0|\n96|59|131|0|\n135|86|150|0|\n",
     "lastKnownWriteTime": 1732298880,

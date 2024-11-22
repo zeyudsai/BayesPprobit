@@ -1,4 +1,3 @@
-```markdown
 # BayesPProbit
 
 <!-- badges: start -->
@@ -18,7 +17,6 @@ install.packages("BayesPProbit")
 
 # Or install development version from GitHub
 devtools::install_github("username/BayesPProbit")
-```
 
 ## Usage
 

@@ -5,7 +5,7 @@ citHeader("To cite the BayesPprobit package in publications use:")
 # Citation for the article
 citation_article <- 
 bibentry(
-  entry = "Article",
+  bibtype = "Article",
   title = "Scalable Bayesian p-Generalized Probit and Logistic Regression",
   author = c(
     person("Zeyu", "Ding"),
@@ -19,7 +19,7 @@ bibentry(
   doi = "10.1007/s11634-024-00599-1",
   url = "https://doi.org/10.1007/s11634-024-00599-1",
   textVersion = paste(
-    "Ding Z, Ickstadt K, Omlor S, Munteanu A (2023).",
+    "Ding Z, Ickstadt K, Omlor S, Munteanu A (2024).",
     "\"Scalable Bayesian p-Generalized Probit and Logistic Regression.\"",
     "Advances in Data Analysis and Classification",
     "doi.org/10.1007/s11634-024-00599-1"
@@ -28,7 +28,7 @@ bibentry(
 # Citation for the package
 citation_package <- 
 bibentry(
-  entry = "Manual",
+  bibtype = "Manual",
   title = "BayesPprobit: Bayesian p-Generalized Probit Regression",
   author = c(
     person("Zeyu", "Ding"),

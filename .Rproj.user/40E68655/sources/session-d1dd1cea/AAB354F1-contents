@@ -1,4 +1,0 @@
-library(testthat)
-library(BayesPProbit)
-
-test_check("BayesPProbit")

@@ -43,3 +43,13 @@ rhub_setup()
 
 rhub_check()
 
+
+desc <- read.dcf("DESCRIPTION")
+print(desc)
+
+
+install.packages("usethis")
+library(usethis)
+usethis::use_mit_license("Zeyu Ding")
+
+

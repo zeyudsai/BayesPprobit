@@ -89,9 +89,13 @@ fit <- multi_chain(
 ### Examining Results
 
 ```{r}
-# Plot MCMC chains
 plot_chains <- function(fit) {
+  # Save old par settings
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par))
+  
   par(mfrow = c(2, 2))
+  
   
   # Plot p parameter chain
   plot(fit$p_chains[[1]], type = "l",
@@ -102,7 +106,7 @@ plot_chains <- function(fit) {
   # Plot first beta parameter
   plot(fit$beta_chains[[1]][, 1], type = "l",
        xlab = "Iteration", ylab = expression(beta[1]),
-       main = "Trace Plot of β1")
+       main = "Trace Plot of beta1")
   abline(h = beta_true[1], col = "red", lty = 2)
   
   # Plot posterior density of p
@@ -113,8 +117,8 @@ plot_chains <- function(fit) {
   
   # Plot true vs estimated betas
   plot(beta_true, fit$posterior_beta,
-       xlab = "True β", ylab = "Estimated β",
-       main = "True vs Estimated β")
+       xlab = "True beta", ylab = "Estimated beta",
+       main = "True vs Estimated beta")
   abline(0, 1, col = "red", lty = 2)
 }
 

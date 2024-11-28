@@ -36,7 +36,11 @@ gibbs_sampler(
 \item{step_size}{Step size}
 }
 \value{
-List of MCMC results
+List containing:
+\describe{
+\item{beta_chain}{MCMC chain for beta parameters}
+\item{p_chain}{Chain for p parameter}
+}
 }
 \description{
 Internal implementation of Gibbs sampler for p-generalized probit model

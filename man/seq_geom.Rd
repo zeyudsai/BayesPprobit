@@ -6,6 +6,16 @@
 \usage{
 seq_geom(from, to, by)
 }
+\arguments{
+\item{from}{Starting value}
+
+\item{to}{Ending value}
+
+\item{by}{Geometric step size}
+}
+\value{
+Vector of geometrically spaced values
+}
 \description{
 Generates sequence with geometric spacing
 }

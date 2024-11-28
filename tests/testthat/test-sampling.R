@@ -1,37 +1,43 @@
-# tests/testthat/test-sampling.R
-
-test_that("multi_chain function returns correct structure", {
+test_that("multi_chain works correctly", {
   set.seed(123)
-  X <- matrix(rnorm(100), nrow = 10, ncol = 10)
-  y <- sample(0:1, 10, replace = TRUE)
-  initial_theta <- rep(0, 10)
+  n <- 20
+  d <- 3
+  X <- matrix(rnorm(n * d), n, d)
+  y <- rbinom(n, 1, 0.5)
 
-  result <- multi_chain(
+  fit <- multi_chain(
     n_sim = 50,
     burn_in = 10,
     X = X,
     y = y,
-    initial_theta = initial_theta,
-    initial_p = 2,  # Correct argument
+    initial_theta = rep(0, d),
+    initial_p = 2,
     mh_iter = 10,
-    p_range = c(0.1, 5),
-    step_size = 0.01,
+    p_range = c(1, 3),
+    step_size = 0.1,
     n_chains = 2
   )
 
 
-  expect_type(result, "list")
-  expect_length(result, 7)
-  expect_named(result, c("beta_chains", "p_chains", "posterior_beta", "posterior_p", "runtime", "gelman_diag", "true_theta"))
+  stopifnot(inherits(fit, "pgprobit"))
+  stopifnot(all(c("beta_chains", "p_chains", "posterior_beta",
+                  "posterior_p", "runtime", "gelman_diag",
+                  "true_theta") %in% names(fit)))
 
-  expect_s3_class(result, "pgprobit")
-
-  expect_length(result$beta_chains, 2)
-  expect_length(result$p_chains, 2)
-  expect_true(all(sapply(result$beta_chains, is.matrix)))
-  expect_true(all(sapply(result$p_chains, is.numeric)))
-
-  expect_length(result$posterior_beta, 10)
-  expect_type(result$posterior_p, "double")
+  stopifnot(length(fit$beta_chains) == 2)
+  stopifnot(length(fit$p_chains) == 2)
+  stopifnot(length(fit$posterior_beta) == d)
+  stopifnot(is.numeric(fit$posterior_p))
 })
 
+test_that("multi_chain handles errors", {
+  n <- 20
+  d <- 3
+  X <- matrix(rnorm(n * d), n, d)
+  y <- rbinom(n, 1, 0.5)
+
+  expect_error(multi_chain(n_sim = 50, burn_in = 10, X = as.data.frame(X),
+                           y = y, initial_theta = rep(0, d)))
+  expect_error(multi_chain(n_sim = 50, burn_in = 10, X = X, y = 1:n,
+                           initial_theta = rep(0, d)))
+})

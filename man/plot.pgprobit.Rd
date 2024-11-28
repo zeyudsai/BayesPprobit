@@ -7,10 +7,13 @@
 \method{plot}{pgprobit}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{pgprobit}.}
+\item{x}{An object of class \code{pgprobit}}
 
-\item{...}{Additional arguments passed to or from other methods.}
+\item{...}{Additional arguments passed to or from other methods}
+}
+\value{
+No return value, called for side effects of creating diagnostic plots.
 }
 \description{
-Plots diagnostics for Bayesian p-Generalized Probit Regression results.
+Creates diagnostic plots for Bayesian p-Generalized Probit Regression results.
 }

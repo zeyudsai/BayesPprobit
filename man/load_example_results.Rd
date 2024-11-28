@@ -6,6 +6,15 @@
 \usage{
 load_example_results()
 }
+\value{
+A list containing pre-computed results:
+\describe{
+\item{basic_fit}{Results from basic model fitting}
+\item{coreset_results}{Results using different coreset methods}
+\item{comparison}{Comparison tables of different methods}
+}
+}
 \description{
-Loads pre-computed example results if available
+Loads pre-computed example results if available. Useful for quick
+demonstrations and testing without running full examples.
 }

@@ -6,7 +6,17 @@
 \usage{
 compute_leverage_scores(X, p, sketch_size)
 }
+\arguments{
+\item{X}{Design matrix}
+
+\item{p}{Shape parameter}
+
+\item{sketch_size}{Size of sketching matrix}
+}
+\value{
+Vector of leverage scores for each observation
+}
 \description{
-Computes p-norm leverage scores using sketching
+Computes p-norm leverage scores using sketching technique
 }
 \keyword{internal}

@@ -28,9 +28,11 @@ compute_coreset(
 }
 \value{
 A list containing:
-\item{indices}{Selected data indices}
-\item{weights}{Importance weights}
-\item{scores}{Sampling scores}
+\describe{
+\item{indices}{Selected data indices in the coreset}
+\item{weights}{Importance sampling weights for selected data points}
+\item{scores}{Computed sensitivity scores for all data points}
+}
 }
 \description{
 Constructs coresets for efficient data compression using various sampling methods

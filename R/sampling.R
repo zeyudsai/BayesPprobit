@@ -15,14 +15,17 @@
 #' @param step_size Step size for MH proposals
 #' @param n_chains Number of parallel chains
 #' @return A list containing:
-#'   \item{beta_chains}{List of MCMC chains}
-#'   \item{p_chains}{List of chains for p parameter}
-#'   \item{posterior_beta}{Posterior mean estimates}
-#'   \item{posterior_p}{Posterior mean of p}
-#'   \item{runtime}{Computation time}
-#'   \item{gelman_diag}{Gelman-Rubin convergence diagnostics}
-#'   \item{true_theta}{True parameter values (if provided)}
+#'   \describe{
+#'     \item{beta_chains}{List of MCMC chains for beta parameters}
+#'     \item{p_chains}{List of chains for p parameter}
+#'     \item{posterior_beta}{Posterior mean estimates of beta}
+#'     \item{posterior_p}{Posterior mean of p}
+#'     \item{runtime}{Computation time}
+#'     \item{gelman_diag}{Gelman-Rubin convergence diagnostics}
+#'     \item{true_theta}{True parameter values (if provided)}
+#'   }
 #' @export
+#'
 multi_chain <- function(n_sim,
                         burn_in,
                         X,
@@ -70,7 +73,8 @@ multi_chain <- function(n_sim,
   runtime <- proc.time() - start_time
 
   # Convert chains to mcmc objects for diagnostics
-  mcmc_chains <- coda::mcmc.list(lapply(beta_chains, function(chain) coda::mcmc(chain[-(1:burn_in), ])))
+  mcmc_chains <- coda::mcmc.list(lapply(beta_chains, function(chain)
+    coda::mcmc(chain[-(1:burn_in), ])))
 
   # Compute convergence diagnostics
   gelman_diag <- coda::gelman.diag(mcmc_chains)
@@ -98,7 +102,6 @@ multi_chain <- function(n_sim,
   # Assign S3 class
   class(result) <- "pgprobit"
 
-  # Return results
   return(result)
 }
 
@@ -155,10 +158,10 @@ sample_latent <- function(X, theta, y, p) {
 #' @param p Shape parameter
 #' @return Updated parameter vector
 #' @keywords internal
-
 update_theta <- function(X, z, p) {
   # Use sirt::lq_fit to estimate coefficients
-  model <- sirt::lq_fit(y = z, X = X, pow = p, est_pow = FALSE)
+  model <- sirt::lq_fit(y = z, X = X, pow = p,
+                        est_pow = FALSE)
   beta_hat <- model$coefficients
 
   # Compute Sigma = tau(p) * (X^T X)^{-1}
@@ -168,8 +171,13 @@ update_theta <- function(X, z, p) {
   Sigma <- tau_p * XtX_inv
 
   # Sample from multivariate normal distribution
-  theta_new <- mvtnorm::rmvnorm(1, mean = beta_hat, sigma = Sigma)
-
+  # theta_new <- mvtnorm::rmvnorm(1, mean = beta_hat, sigma = Sigma)
+  theta_new <- numeric(ncol(X))
+  for (i in 1:ncol(X)) {
+    theta_new[i] <- gnorm::rgnorm(1, mu=beta_hat[i],
+                       alpha =Sigma[i,i],
+                       beta = p)
+  }
   return(as.vector(theta_new))
 }
 
@@ -184,53 +192,52 @@ update_theta <- function(X, z, p) {
 #' @param step_size Step size for proposals
 #' @return Updated p value
 #' @keywords internal
+#' @title Adaptive Step Size Metropolis-Hastings
+#' @export
 update_p <- function(X, z, theta, p, mh_iter, p_range, step_size) {
+  Xb <- X%*%theta
+  ehat <- z - Xb
+  u <- runif(mh_iter)
+  tol <- 1e-40
   p_current <- p
+  accept_count <- 0
+  target_rate <- 0.234
 
-  # Compute residuals
-  resid <- z - as.vector(X %*% theta)
+  step_history <- numeric(mh_iter)
 
   for (i in 1:mh_iter) {
-    # Propose new p value
-    p_prop <- runif(
-      1,
-      min = max(p_range[1], p_current - step_size),
-      max = min(p_range[2], p_current + step_size)
-    )
+    p_prop <- runif(1,
+                    min = max(p_range[1], p_current - step_size),
+                    max = min(p_range[2], p_current + step_size))
 
-    # Compute alpha and beta parameters
-    alpha_current <- p_scale(p_current)
-    beta_current <- p_current
-    alpha_prop <- p_scale(p_prop)
-    beta_prop <- p_prop
+    R0 <- sum(log(gnorm::dgnorm(ehat,alpha = p_scale(p_prop),
+                         beta = p_prop)+tol))
+    R1 <- sum(log(dgnorm(ehat,alpha = p_scale(p_current),
+                         beta = p_current)+tol))
+    adj<- max(R0,R1)
+    R  <- exp(R0-adj)/exp(R1-adj)
 
-    # Compute log-likelihoods
-    ll_current <- sum(gnorm::dgnorm(
-      resid,
-      alpha = alpha_current,
-      beta = beta_current,
-      mu = 0,
-      log = TRUE
-    ))
 
-    ll_prop <- sum(gnorm::dgnorm(
-      resid,
-      alpha = alpha_prop,
-      beta = beta_prop,
-      mu = 0,
-      log = TRUE
-    ))
-
-    # Acceptance probability
-    log_ratio <- ll_prop - ll_current
-
-    if (is.finite(log_ratio) && log(runif(1)) < log_ratio) {
+    if (u[i] < R) {
       p_current <- p_prop
+      accept_count <- accept_count + 1
     }
+
+    # if (i > 50) {
+    #   current_rate <- accept_count / i
+    #   if (current_rate < target_rate) {
+    #     step_size <- step_size * 0.9
+    #   } else {
+    #     step_size <- step_size * 1.1
+    #   }
+    # }
+
+    step_history[i] <- step_size
   }
 
   return(p_current)
 }
+
 
 #' @title Gibbs Sampler Implementation
 #' @description Internal implementation of Gibbs sampler for p-generalized probit model
@@ -243,10 +250,14 @@ update_p <- function(X, z, theta, p, mh_iter, p_range, step_size) {
 #' @param mh_iter MH iterations
 #' @param p_range Range for p
 #' @param step_size Step size
-#' @return List of MCMC results
+#' @return List containing:
+#'   \describe{
+#'     \item{beta_chain}{MCMC chain for beta parameters}
+#'     \item{p_chain}{Chain for p parameter}
+#'   }
 #' @keywords internal
 gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta, initial_p,
-                          mh_iter, p_range, step_size) {
+                          mh_iter, p_range, step_size, fix_p = FALSE) {
   n <- nrow(X)
   d <- ncol(X)
 
@@ -269,7 +280,14 @@ gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta, initial_p,
     z <- sample_latent(X, theta, y, p)
 
     # Update p
-    p <- update_p(X, z, theta, p, mh_iter, p_range, step_size)
+    if(fix_p){
+      p <- initial_p
+    } else{
+      p <- update_p(X, z, theta, p, mh_iter,
+                    p_range, step_size)
+    }
+
+
 
     # Update theta
     theta <- update_theta(X, z, p)
@@ -289,11 +307,11 @@ gibbs_sampler <- function(n_sim, burn_in, X, y, initial_theta, initial_p,
   )
 }
 
-
 #' @title Print Method for pgprobit Objects
 #' @description Prints a summary of the Bayesian p-Generalized Probit Regression results.
-#' @param x An object of class \code{pgprobit}.
-#' @param ... Additional arguments passed to or from other methods.
+#' @param x An object of class \code{pgprobit}
+#' @param ... Additional arguments passed to or from other methods
+#' @return No return value, called for side effects of printing summary information.
 #' @export
 print.pgprobit <- function(x, ...) {
   cat("Bayesian p-Generalized Probit Regression\n\n")
@@ -305,11 +323,13 @@ print.pgprobit <- function(x, ...) {
 }
 
 #' @title Plot Method for pgprobit Objects
-#' @description Plots diagnostics for Bayesian p-Generalized Probit Regression results.
-#' @param x An object of class \code{pgprobit}.
-#' @param ... Additional arguments passed to or from other methods.
+#' @description Creates diagnostic plots for Bayesian p-Generalized Probit Regression results.
+#' @param x An object of class \code{pgprobit}
+#' @param ... Additional arguments passed to or from other methods
+#' @return No return value, called for side effects of creating diagnostic plots.
 #' @export
 plot.pgprobit <- function(x, ...) {
+  # Save old par settings
   old_par <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(old_par))
 

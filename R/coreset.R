@@ -7,9 +7,11 @@
 #' @param sketch_size Size of sketching matrix (default: ncol(X)^2)
 #' @param p Shape parameter for p-norm (default: 2)
 #' @return A list containing:
-#'   \item{indices}{Selected data indices}
-#'   \item{weights}{Importance weights}
-#'   \item{scores}{Sampling scores}
+#'   \describe{
+#'     \item{indices}{Selected data indices in the coreset}
+#'     \item{weights}{Importance sampling weights for selected data points}
+#'     \item{scores}{Computed sensitivity scores for all data points}
+#'   }
 #' @export
 compute_coreset <- function(X, y, coreset_size,
                             method = c("leverage", "uniform", "oneshot"),
@@ -57,7 +59,11 @@ compute_coreset <- function(X, y, coreset_size,
 }
 
 #' @title Compute Leverage Scores
-#' @description Computes p-norm leverage scores using sketching
+#' @description Computes p-norm leverage scores using sketching technique
+#' @param X Design matrix
+#' @param p Shape parameter
+#' @param sketch_size Size of sketching matrix
+#' @return Vector of leverage scores for each observation
 #' @keywords internal
 compute_leverage_scores <- function(X, p, sketch_size) {
   n <- nrow(X)
@@ -86,6 +92,10 @@ compute_leverage_scores <- function(X, p, sketch_size) {
 
 #' @title Compute One-shot Coreset Scores
 #' @description Computes sampling scores valid for multiple p values
+#' @param X Design matrix
+#' @param p_max Maximum p value to consider
+#' @param sketch_size Size of sketching matrix
+#' @return Vector of sensitivity scores
 #' @keywords internal
 compute_oneshot_scores <- function(X, p_max, sketch_size) {
   n <- nrow(X)
@@ -109,6 +119,10 @@ compute_oneshot_scores <- function(X, p_max, sketch_size) {
 
 #' @title Compute Matrix Sketch
 #' @description Computes Count-Sketch or Gaussian sketch of input matrix
+#' @param X Input matrix
+#' @param sketch_size Size of sketching matrix
+#' @param p Shape parameter
+#' @return Sketched matrix
 #' @keywords internal
 compute_sketch <- function(X, sketch_size, p) {
   n <- nrow(X)
@@ -138,8 +152,11 @@ compute_sketch <- function(X, sketch_size, p) {
 
 #' @title Generate Geometric Sequence
 #' @description Generates sequence with geometric spacing
+#' @param from Starting value
+#' @param to Ending value
+#' @param by Geometric step size
+#' @return Vector of geometrically spaced values
 #' @keywords internal
 seq_geom <- function(from, to, by) {
   exp(seq(log(from), log(to), log(by)))
 }
-

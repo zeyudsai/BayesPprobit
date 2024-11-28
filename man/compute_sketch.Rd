@@ -6,6 +6,16 @@
 \usage{
 compute_sketch(X, sketch_size, p)
 }
+\arguments{
+\item{X}{Input matrix}
+
+\item{sketch_size}{Size of sketching matrix}
+
+\item{p}{Shape parameter}
+}
+\value{
+Sketched matrix
+}
 \description{
 Computes Count-Sketch or Gaussian sketch of input matrix
 }

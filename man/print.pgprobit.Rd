@@ -7,9 +7,12 @@
 \method{print}{pgprobit}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{pgprobit}.}
+\item{x}{An object of class \code{pgprobit}}
 
-\item{...}{Additional arguments passed to or from other methods.}
+\item{...}{Additional arguments passed to or from other methods}
+}
+\value{
+No return value, called for side effects of printing summary information.
 }
 \description{
 Prints a summary of the Bayesian p-Generalized Probit Regression results.

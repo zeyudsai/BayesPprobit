@@ -10,7 +10,7 @@ p_scale(p)
 \item{p}{Shape parameter}
 }
 \value{
-Scale parameter value
+A numeric value representing the scale parameter p^(1/p)
 }
 \description{
 Computes scale parameter for p-generalized Gaussian distribution

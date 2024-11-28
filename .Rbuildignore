@@ -3,3 +3,5 @@
 ^\.github$
 ^Old code$
 ^LICENSE\.md$
+^doc$
+^Meta$

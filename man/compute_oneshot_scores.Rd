@@ -6,6 +6,16 @@
 \usage{
 compute_oneshot_scores(X, p_max, sketch_size)
 }
+\arguments{
+\item{X}{Design matrix}
+
+\item{p_max}{Maximum p value to consider}
+
+\item{sketch_size}{Size of sketching matrix}
+}
+\value{
+Vector of sensitivity scores
+}
 \description{
 Computes sampling scores valid for multiple p values
 }

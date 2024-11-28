@@ -43,13 +43,15 @@ multi_chain(
 }
 \value{
 A list containing:
-\item{beta_chains}{List of MCMC chains}
+\describe{
+\item{beta_chains}{List of MCMC chains for beta parameters}
 \item{p_chains}{List of chains for p parameter}
-\item{posterior_beta}{Posterior mean estimates}
+\item{posterior_beta}{Posterior mean estimates of beta}
 \item{posterior_p}{Posterior mean of p}
 \item{runtime}{Computation time}
 \item{gelman_diag}{Gelman-Rubin convergence diagnostics}
 \item{true_theta}{True parameter values (if provided)}
+}
 }
 \description{
 Performs multiple chain MCMC sampling for Bayesian p-generalized

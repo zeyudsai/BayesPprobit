@@ -6,6 +6,43 @@
 \usage{
 run_example()
 }
+\value{
+Returns invisibly a list containing:
+\describe{
+\item{basic_fit}{Results from basic model fitting using simulated data}
+\item{coreset_results}{Results using different coreset methods}
+\item{comparison}{Comparison tables of different methods}
+}
+}
 \description{
-Demonstrates basic usage of the package through examples
+Demonstrates basic usage of the package through comprehensive examples
+}
+\examples{
+\donttest{
+# Generate small example dataset
+set.seed(123)
+n <- 100  # smaller sample size for example
+d <- 5
+X <- matrix(rnorm(n * d), n, d)
+beta_true <- c(1.5, -0.8, 0.6, -0.4, 0.2)
+p_true <- 2
+eta <- X \%*\% beta_true
+alpha <- p_scale(p_true)
+prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
+y <- rbinom(n, 1, prob)
+
+# Fit basic model
+fit <- multi_chain(
+  n_sim = 1000,
+  burn_in = 200,
+  X = X,
+  y = y,
+  initial_theta = rep(0, d),
+  initial_p = 2,
+  n_chains = 2
+)
+
+# Print summary
+print(fit)
+}
 }

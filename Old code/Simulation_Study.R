@@ -8,24 +8,24 @@ setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 source("Functions.R")
 
 dev.off()
-N <- 50000
+N <- 2000
 #D should always be odd number since we use (D-1)/2 to generate the variables
 D <- 11
 N_sim <- 2000
 burn_in<- 1500
 #gengerate data and true parameters
-X <- generate.data(N,D)
+X <- generate.data(N,D)/10
 # True values of regression coeffiecients theta
 true_theta <- runif(D,-3,3)
 Xb <- X%*%true_theta
-#####This step should be repeated several times to avoid the apperance of the 
+#####This step should be repeated several times to avoid the apperance of the
 #perfectly separation.
 hist(Xb)
 #Obtain the true probability of pi and the real bernouli distributed Y
 pi.logit <- exp(Xb)/(1+exp(Xb))
 pi.probit <- pnorm(Xb)
 pi.cloglog <- 1-exp(-exp(Xb))
-#Here we check if the data are perfectly linear separation. If it's then the 
+#Here we check if the data are perfectly linear separation. If it's then the
 #data need to be regenerated
 hist(pi.logit)
 hist(pi.probit)
@@ -45,13 +45,16 @@ MLE_probit <- glm(y.probit~X[,-1],family = binomial(link = probit))
 MLE_logit <- glm(y.logit~X[,-1],family = binomial(link = logit))
 
 MLE_probit_coefficients <- MLE_probit$coefficients
+
+summary(MLE_logit)
+summary(MLE_probit)
 #Setting LP
 Lp <- c(0.5,1,1.5,2,2.5,3,3.5,4,4.5,5,6,7,8)
 
 for (i in Lp) {
   pi_p <- pgnorm(Xb,alpha = p_scale(i),beta = i)
   assign(paste("pi_",i,sep = ""),pi_p)
-  
+
 }
 #Setting Yp
 
@@ -59,16 +62,18 @@ for (i in Lp) {
 for (i in Lp) {
   y_pi <- generate_p_y(p=i,Xb=Xb,N=N)
   assign(paste("y_p",i,sep = ""),y_pi)
-  
+
 }
 
 #frac <- c(seq(0.001,0.01,0.001))
 #sample_index<- Compute_coreset(sketch_size = 100,coreset_size = 100,X=X,Lp=2)
-#sample logit model 
-P_logit <- multi_chain(N_sim=2000,burn_in=1000,
+#sample logit model
+P_logit <- multi_chain(N_sim=200,burn_in=100,
                                     X=X, y=y.logit,initial_theda=MLE_logit$coefficients,
-                                    true_theta=true_theta,Lp=1,M_iter=100,range=c(0.1,5),step=0.01,
-                       times = 5)
+                                    true_theta=true_theta,
+                       Lp=1,M_iter=100,
+                       range=c(0.1,5),step=0.01,
+                       times = 1)
 
 
 #Convergence check
@@ -81,7 +86,7 @@ plot(P_logit$Lp.mean.chain[-1],type = "l",main = "Estimated MCMC chain of p with
 Msubtitle <- "P=logit"
 mtext(side = 3, line = 0.4, Msubtitle)
 
-#sample probit model 
+#sample probit model
 P_probit <- multi_chain(N_sim=2000,burn_in=1000,
                                     X=X, y=y.probit,initial_theda=MLE_probit_coefficients,
                                     true_theta=true_theta,Lp=2,M_iter=100,range=c(0.1,5),step=0.01,
@@ -94,7 +99,7 @@ gelman_res <- gelman.diag(mcmc_probit,autoburnin = FALSE)
 gelman.plot(mcmc_probit,autoburnin = FALSE)
 gelman_res
 
-plot(P_probit$Lp.mean.chain[-1],type = "l",main = "Estimated MCMC chain of p with metropolis-hasting", 
+plot(P_probit$Lp.mean.chain[-1],type = "l",main = "Estimated MCMC chain of p with metropolis-hasting",
      xlab = "iteration",ylab = "p" ,ylim=c(1.5,2.5))
 Msubtitle <- "P=probit, initial p=5"
 mtext(side = 3, line = 0.4, Msubtitle)
@@ -114,7 +119,7 @@ gelman.plot(mcmc_0.5,autoburnin = FALSE)
 gelman_res
 
 P_1 <- multi_chain(times=5,N_sim=2000,burn_in=1000,
-                                    X=X, 
+                                    X=X,
                    y=y_p1,initial_theda=MLE_probit_coefficients,
                                     true_theta=true_theta,Lp=5,
                    M_iter=100,range=c(0.1,5),step=0.01)
@@ -140,18 +145,18 @@ mcmc_1.5 <- lapply(P_1.5$Lp_chain, mcmc)
 gelman_res <- gelman.diag(mcmc_1.5, autoburnin = FALSE)
 gelman.plot(mcmc_1, autoburnin = F)
 gelman_res
-# 
+#
 # P_2 <- multi_chain(times=1,N_sim=N_sim,burn_in=burn_in,
 #                                     X=X, y=y_p2,initial_theda=MLE_probit_coefficients,
 #                                     true_theta=true_theta,Lp=5,M_iter=200,range=c(0.1,5),step=0.05)
 # P_2
 # P_2$Lp.mean
-# 
+#
 # plot(P_2$Lp.mean.chain[-1],type = "l",main = "Estimated MCMC chain of p with metropolis-hasting", xlab = "iteration",ylab = "p" )
 # Msubtitle <- "P=2, initial p=5"
 # mtext(side = 3, line = 0.4, Msubtitle)
 
-# 
+#
 # P_2.5 <- multi_chain(times=1,N_sim=N_sim,burn_in=burn_in,
 #                                     X=X, y=y_p2.5,initial_theda=MLE_probit_coefficients,
 #                                     true_theta=true_theta,Lp=5,M_iter=200,range=c(0.1,5),step=0.05)
@@ -204,7 +209,7 @@ gelman_res
 # P_4.5 <- multi_chain(times=1, N_sim=N_sim,burn_in=burn_in,
 #                                      X=X, y=y_p4.5,initial_theda=MLE_probit_coefficients,
 #                                      true_theta=true_theta,Lp=5,M_iter=200,range=c(0.1,10),step=0.01)
-# 
+#
 # P_4.5
 # P_4.5$Lp.mean
 # plot(P_4.5$Lp.mean.chain[-1],type = "l",main = "Estimated MCMC chain of p with metropolis-hasting", xlab = "iteration",ylab = "p" )
@@ -246,9 +251,9 @@ gelman.plot(mcmc_8, autoburnin = F)
 gelman_res
 
 
-# 
+#
 # plot_a <- ggplot(data=data.frame(Lp.mean.chain=P_logit$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_logit$Lp.mean.chain)), 
+#                                  x=1:length(P_logit$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
@@ -256,44 +261,44 @@ gelman_res
 #        # subtitle="Estimated p=0.81",
 #        x="MCMC iteration",
 #        y="p")+ylim(c(0.5,2))
-# 
+#
 # plot_b <- ggplot(data=data.frame(Lp.mean.chain=P_probit$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_probit$Lp.mean.chain)), 
+#                                  x=1:length(P_probit$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
-#   labs(title="The estimated p for the probit data", 
-#        # subtitle="Estimated p=1.94", 
+#   labs(title="The estimated p for the probit data",
+#        # subtitle="Estimated p=1.94",
 #        x="MCMC iteration",
 #        y="p")+ylim(c(1,3))
-# 
+#
 # plot_c <- ggplot(data=data.frame(Lp.mean.chain=P_1$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_1$Lp.mean.chain)), 
+#                                  x=1:length(P_1$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
-#   labs(title="The estimated p for the p=1 data", 
-#        # subtitle="Estimated p=1.00", 
+#   labs(title="The estimated p for the p=1 data",
+#        # subtitle="Estimated p=1.00",
 #        x="MCMC iteration",
 #        y="p")+ylim(c(0.5,4))
-# 
+#
 # plot_d <- ggplot(data=data.frame(Lp.mean.chain=P_2$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_2$Lp.mean.chain)), 
+#                                  x=1:length(P_2$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
-#   labs(title="The estimated p for the p=2 data", 
-#        # subtitle="Estimated p=2.06", 
+#   labs(title="The estimated p for the p=2 data",
+#        # subtitle="Estimated p=2.06",
 #        x="MCMC iteration",
 #        y="p")+ylim(c(1.5,4))
-# 
-# ggarrange(plot_a, plot_b, plot_c ,plot_d, 
+#
+# ggarrange(plot_a, plot_b, plot_c ,plot_d,
 #           labels = c("A", "B", "C","D"),
 #           ncol = 2, nrow = 2)
-# 
-# 
+#
+#
 # jpeg("Simulation_p_logit_probit_p=2(version2).jpeg", units="in", width=8, height=5, res=300)
-# ggarrange(plot_a, plot_b, plot_c ,plot_d, 
+# ggarrange(plot_a, plot_b, plot_c ,plot_d,
 #           labels = c("A", "B", "C","D"),
 #           ncol = 2, nrow = 2)
 # jpeg("p_chain_probit_N50K.jpeg", units="in", width=8, height=5, res=300)
@@ -309,7 +314,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=700, y=2.7,size=6 ,
            label= TeX("$\\hat{p} = 2.033",
@@ -337,7 +342,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=7500, y=1.0,size=6 ,
            label= TeX("$\\hat{p} = 1.472",
@@ -376,7 +381,7 @@ dev.off()
 #   geom_line()+
 #   annotate("text", x=1300, y=2.89,,size=6, label= TeX("$\\hat{p} = 1.647", output='character'),parse=TRUE) +
 #   annotate("text", x=1300, y=2.7,,size=6 ,label= "Estimation of p for logit data") +
-#   
+#
 #   theme_bw(base_size = 12) +
 #   labs(
 #     # title="Estimation of p for p=3 data",
@@ -408,41 +413,41 @@ ggplot(df0.5, aes(x = Values, y = Density)) +
   labs(title = "Posterior distribution of p=0.5", x = "Values", y = "Density")
 # jpeg("posterior_logit.jpeg", units="in", width=8, height=5, res=300)
 ggplot(dflogit, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of logit data", x = "Values", y = "Density")+
   xlim(1.3,1.55)
 dev.off()
 # jpeg("posterior_probit.jpeg", units="in", width=8, height=5, res=300)
 ggplot(dfprobit, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of probit data", x = "Values", y = "Density")+
   xlim(1.9,2.1)
 dev.off()
 # jpeg("posterior_p1.jpeg", units="in", width=8, height=5, res=300)
 ggplot(df1, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of p=1 data", x = "Values", y = "Density")+
   xlim(1,1.1)
 dev.off()
 ggplot(df1.5, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of p=1.5 data", x = "Values", y = "Density")+
   xlim(1.2,1.6)
 # jpeg("posterior_p3.jpeg", units="in", width=8, height=5, res=300)
 ggplot(df3, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of p=3 data", x = "Values", y = "Density")+
   xlim(2.7,3.2)
 dev.off()
 # jpeg("posterior_p5.jpeg", units="in", width=8, height=5, res=300)
 ggplot(df5, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of p=5 data", x = "Values", y = "Density")+
   xlim(4.8,6.2)
 dev.off()
 # jpeg("posterior_p8.jpeg", units="in", width=8, height=5, res=300)
 ggplot(df8, aes(x = Values, y = Density)) +
-  geom_line()+ 
+  geom_line()+
   labs(title = "Posterior distribution of p=8 data", x = "Values", y = "Density")+
   xlim(7,10)
 dev.off()
@@ -503,7 +508,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=1500, y=1.3,size=6 ,
            label= TeX("$\\hat{p} = 1.069",
@@ -522,7 +527,7 @@ dev.off()
 #   geom_line()+
 #   annotate("text", x=700, y=1.7,size=6, label= TeX("$\\hat{p} = 0.930", output='character'),parse=TRUE) +
 #   annotate("text", x=700, y=1.6, ,size=6,label= "Estimation of p for p=1 data") +
-#   
+#
 #   theme_bw(base_size = 12) +
 #   labs(
 #     # title="Estimation of p for p=3 data",
@@ -532,14 +537,14 @@ dev.off()
 # dev.off()
 
 # jpeg("p=2.jpeg", units="in", width=8, height=5, res=300)
-# 
+#
 # ggplot(data=data.frame(Lp.mean.chain=P_2$Lp.mean.chain[seq(50,1000,5)],
 #                        x=seq(50,1000,5)),
 #        aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   annotate("text", x=800, y=2.7,size=6, label= TeX("$\\hat{p} = 1.984", output='character'),parse=TRUE) +
 #   annotate("text", x=800, y=2.9, size=6, label= "Estimation of p for p=2 data") +
-#   
+#
 #   theme_bw(base_size = 12) +
 #   labs(
 #     # title="Estimation of p for p=3 data",
@@ -560,7 +565,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=1500, y=2.1,size=6 ,
            label= TeX("$\\hat{p} = 3.021",
@@ -571,16 +576,16 @@ ggplot(plotdata, aes(iteration, mean)) +
   ylim(c(2,4))
 dev.off()
 
-# 
+#
 # jpeg("p_chain_3_n10k.jpeg", units="in", width=8, height=5, res=300)
-# 
+#
 #   ggplot(data=data.frame(Lp.mean.chain=P_3$Lp.mean.chain[seq(50,1000,5)],
 #                                  x=seq(50,1000,5)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   annotate("text", x=800, y=2.9,size=6, label= TeX("$\\hat{p} = 4.039", output='character'),parse=TRUE) +
 #   annotate("text", x=800, y=3.15,size=6, label= "Estimation of p for p=3 data") +
-# 
+#
 #   theme_bw(base_size = 12) +
 #   labs(
 #     # title="Estimation of p for p=3 data",
@@ -588,24 +593,24 @@ dev.off()
 #        x="MCMC iteration",
 #        y="p")+ylim(c(2.5,5.5))
 #   dev.off()
-  
+
   # jpeg("p_chain_4_n10k.jpeg", units="in", width=8, height=5, res=300)
-  # 
-  # 
+  #
+  #
   # ggplot(data=data.frame(Lp.mean.chain=P_4$Lp.mean.chain[seq(50,1000,5)],
   #                        x=seq(50,1000,5)),
   #        aes(x=x, y=Lp.mean.chain)) +
   #   geom_line()+
   #   annotate("text", x=700, y=4.9,size=6, label= TeX("$\\hat{p} = 4.070", output='character'),parse=TRUE) +
   #   annotate("text", x=700, y=4.7,size=6, label= "Estimation of p for p=4 data") +
-  #   
+  #
   #   theme_bw(base_size = 12) +
   #   labs(
   #     # title="Estimation of p for p=3 data",
   #     # subtitle="Estimated p=3.03",
   #     x="MCMC iteration",
   #     y="p")+ylim(c(3.5,5))
-  # 
+  #
   # dev.off()
 
 # jpeg("p_chain_5_n50k.jpeg", units="in", width=8, height=5, res=300)
@@ -619,7 +624,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=1500, y=4.2,size=6 ,
            label= TeX("$\\hat{p} = 5.507",
@@ -641,7 +646,7 @@ plotdata <- data.frame(mean=apply(chain_df[-(1:start),], MARGIN = 1, mean),
 ggplot(plotdata, aes(iteration, mean)) +
   geom_ribbon(aes(ymin=min, max=max), alpha=0.4, colour=NA) +
   geom_line() +
-  labs(x="MCMC Iteration", 
+  labs(x="MCMC Iteration",
        y="p") +
   annotate("text", x=3500, y=10,size=6 ,
            label= TeX("$\\hat{p} = 8.525",
@@ -654,31 +659,31 @@ dev.off()
 
 
   # jpeg("p_chain_5_n10k.jpeg", units="in", width=8, height=5, res=300)
-  # 
+  #
   # ggplot(data=data.frame(Lp.mean.chain=P_5$Lp.mean.chain[seq(50,1000,5)],
   #                        x=seq(50,1000,5)),
   #        aes(x=x, y=Lp.mean.chain)) +
   #   geom_line()+
   #   annotate("text", x=700, y=5.4,size=6, label= TeX("$\\hat{p} = 4.234 ", output='character'),parse=TRUE) +
   #   annotate("text", x=700, y=5.6,size=6, label= "Estimation of p for p=5 data") +
-  #   
+  #
   #   theme_bw(base_size = 12) +
   #   labs(
   #     # title="Estimation of p for p=3 data",
   #     # subtitle="Estimated p=3.03",
   #     x="MCMC iteration",
-  #     y="p")+ylim(c(4,6.5))  
+  #     y="p")+ylim(c(4,6.5))
   # dev.off()
-  
+
   # jpeg("p_chain_8_n10k.jpeg", units="in", width=8, height=5, res=300)
-  
+
   ggplot(data=data.frame(Lp.mean.chain=P_8$Lp.mean.chain[seq(50,10000,20)],
                                                     x=seq(50,10000,20)),
                                     aes(x=x, y=Lp.mean.chain)) +
     geom_line()+
     annotate("text", x=7500, y=6.7,size=6, label= TeX("$\\hat{p} = 9.351", output='character'),parse=TRUE) +
     annotate("text", x=7500, y=7.2,size=6, label= "Estimation of p for p=8 data") +
-    
+
     theme_bw(base_size = 12) +
     labs(
       # title="Estimation of p for p=3 data",
@@ -686,10 +691,10 @@ dev.off()
       x="MCMC iteration",
       y="p")+ylim(c(6.5,10.5))
   dev.off()
-  
-# 
+
+#
 # plot_b <- ggplot(data=data.frame(Lp.mean.chain=P_4$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_4$Lp.mean.chain)), 
+#                                  x=1:length(P_4$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
@@ -697,37 +702,37 @@ dev.off()
 #        y="p")+ylim(c(3,5))
 
 # plot_c <- ggplot(data=data.frame(Lp.mean.chain=P_5$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_5$Lp.mean.chain)), 
+#                                  x=1:length(P_5$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
 #   labs(title="Estimation p for p=5 data", subtitle="Estimated p=4.13", x="MCMC iteration",
 #        y="p")+ylim(c(4,6))
-# 
+#
 # plot_d <- ggplot(data=data.frame(Lp.mean.chain=P_8$Lp.mean.chain[1:N_sim],
-#                                  x=1:length(P_8$Lp.mean.chain)), 
+#                                  x=1:length(P_8$Lp.mean.chain)),
 #                  aes(x=x, y=Lp.mean.chain)) +
 #   geom_line()+
 #   theme_bw(base_size = 12) +
 #   labs(title="The estimated p for the p=8 data", subtitle="Estimated p=7.25", x="MCMC iteration",
 #        y="p")+ylim(c(6,10))
 
-# ggarrange(plot_a, plot_b, plot_c ,plot_d, 
+# ggarrange(plot_a, plot_b, plot_c ,plot_d,
 #           labels = c("A", "B", "C","D"),
 #           ncol = 2, nrow = 2)
-# 
+#
 # jpeg("Simulation_p_5_8.jpeg(version2)", units="in", width=8, height=5, res=300)
-# ggarrange(plot_a, plot_b, plot_c ,plot_d, 
+# ggarrange(plot_a, plot_b, plot_c ,plot_d,
 #           labels = c("A", "B", "C","D"),
 #           ncol = 2, nrow = 2)
 # dev.off()
-# 
+#
 # probit_llk_ratio<- c()
 # for (i in 1:10) {
-#   
+#
 #   b<- llk(X, credit_p2$post.mean,2,)-
 #                    llk(X,get(paste("credit_p_2_2probit_frac",frac[i],"chain_",j,sep = ""))$post.mean,2)
-#   
+#
 # }
 
 
@@ -737,51 +742,51 @@ dev.off()
 
 # plot_a <- ggplot() +
 #   geom_line(data=data.frame(Lp.mean.chain=probit_llk_ratio,
-#                             x=llk_plot_grid), 
+#                             x=llk_plot_grid),
 #             aes(x=x, y=Lp.mean.chain))+
 #   geom_hline(yintercept=1, linetype="dashed", color = "red")+
 #   theme_bw(base_size = 12) +
-#   labs(title="likelihood ratio using different p for probit data", 
+#   labs(title="likelihood ratio using different p for probit data",
 #         x="p",
 #        y="lilelihood ratio")+scale_x_continuous(breaks=seq(0,8,1))
-# 
+#
 
 # plot_b <- ggplot() +
 #   geom_line(data=data.frame(Lp.mean.chain=logit_llk_ratio,
-#                             x=llk_plot_grid), 
+#                             x=llk_plot_grid),
 #             aes(x=x, y=Lp.mean.chain))+
 #   geom_hline(yintercept=1, linetype="dashed", color = "red")+
 #   theme_bw(base_size = 12) +
-#   labs(title="likelihood ratio using different p for logit data", 
+#   labs(title="likelihood ratio using different p for logit data",
 #        x="p",
 #        y="lilelihood ratio")+scale_x_continuous(breaks=seq(0,8,1))
-# 
+#
 
 
-# plot_c<- 
+# plot_c<-
 # ggplot() +
 #   geom_line(data=data.frame(Lp.mean.chain=p_1_llk_ratio,
-#                             x=llk_plot_grid), 
+#                             x=llk_plot_grid),
 #             aes(x=x, y=Lp.mean.chain))+
 #   geom_hline(yintercept=1, linetype="dashed", color = "red")+
 #   theme_bw(base_size = 12) +
-#   labs(title="likelihood ratio using different p for p=1 data", 
+#   labs(title="likelihood ratio using different p for p=1 data",
 #        x="p",
 #        y="lilelihood ratio") +scale_x_continuous(breaks=seq(0,8,1))
-# plot_d<- 
+# plot_d<-
 #   ggplot() +
 #   geom_line(data=data.frame(Lp.mean.chain=p_2_llk_ratio,
-#                             x=llk_plot_grid), 
+#                             x=llk_plot_grid),
 #             aes(x=x, y=Lp.mean.chain))+
 #   geom_hline(yintercept=1, linetype="dashed", color = "red")+
 #   theme_bw(base_size = 12) +
-#   labs(title="likelihood ratio using different p for p=2 data", 
+#   labs(title="likelihood ratio using different p for p=2 data",
 #        x="p",
 #        y="lilelihood ratio") +scale_x_continuous(breaks=seq(0,8,1))
-# 
+#
 
-# 
-# 
+#
+#
 P_logit$Lp.mean
 var(P_logit$Lp.mean.chain)
 norm(as.matrix(P_logit$Beta.mean-true_theta,2))
@@ -901,23 +906,23 @@ p_probit_8 <- Lp_gibbssampler(N_sim=1000,
                                    burn_in=900, X=X, y=y_p8,true_theta = true_theta,Lp=8,
                                    initial_theda = MLE_logit$coefficients)
 #Calculate the fitted value of probability for the p-probit model of all scenarios
-p_probit_probit_pred <- pgnorm(X%*%p_probit_probit$post.mean, 
+p_probit_probit_pred <- pgnorm(X%*%p_probit_probit$post.mean,
                                alpha = p_scale(2),beta = 2)
-p_probit_logit_pred <- pgnorm(X%*%p_probit_logit$post.mean, 
+p_probit_logit_pred <- pgnorm(X%*%p_probit_logit$post.mean,
                                alpha = p_scale(1),beta = 1)
-p_probit_0.5_pred <- pgnorm(X%*%p_probit_0.5$post.mean, 
+p_probit_0.5_pred <- pgnorm(X%*%p_probit_0.5$post.mean,
                               alpha = p_scale(0.5),beta = 0.5)
-p_probit_1_pred <- pgnorm(X%*%p_probit_1$post.mean, 
+p_probit_1_pred <- pgnorm(X%*%p_probit_1$post.mean,
                               alpha = p_scale(1),beta = 1)
-p_probit_1.5_pred <- pgnorm(X%*%p_probit_1.5$post.mean, 
+p_probit_1.5_pred <- pgnorm(X%*%p_probit_1.5$post.mean,
                               alpha = p_scale(1.5),beta = 1.5)
-p_probit_3_pred <- pgnorm(X%*%p_probit_3$post.mean, 
+p_probit_3_pred <- pgnorm(X%*%p_probit_3$post.mean,
                               alpha = p_scale(3),beta = 3)
-p_probit_4_pred <- pgnorm(X%*%p_probit_4$post.mean, 
+p_probit_4_pred <- pgnorm(X%*%p_probit_4$post.mean,
                               alpha = p_scale(4),beta = 4)
-p_probit_5_pred <- pgnorm(X%*%p_probit_5$post.mean, 
+p_probit_5_pred <- pgnorm(X%*%p_probit_5$post.mean,
                               alpha = p_scale(5),beta = 5)
-p_probit_8_pred <- pgnorm(X%*%p_probit_8$post.mean, 
+p_probit_8_pred <- pgnorm(X%*%p_probit_8$post.mean,
                               alpha = p_scale(8),beta = 8)
 
 #Calculate the absolute error of all scenarios.
@@ -975,7 +980,7 @@ sum(abs(pi_8-probit8$fitted.values))
 sum(abs(pi_8-logit8$fitted.values))
 sum(abs(pi_8-cloglog_8$fitted.values))
 
-#Calculate the likelihood ratio 
+#Calculate the likelihood ratio
 
 #logit data
 llk(X,true_theta,1,y.logit)/llk(X,p_probit_logit$post.mean,1,y.logit)
@@ -1040,7 +1045,7 @@ sum((y.logit-probit_logit$fitted.values)^2)
 sum((y.logit-logit_logit$fitted.values)^2)
 sum((y.logit-cloglog_logit$fitted.values)^2)
 
-#probit data 
+#probit data
 
 sum((y.probit-p_probit_probit_pred)^2)
 sum((y.probit-probit_probit$fitted.values)^2)
@@ -1098,7 +1103,7 @@ sum((pi.logit-probit_logit$fitted.values)^2)
 sum((pi.logit-logit_logit$fitted.values)^2)
 sum((pi.logit-cloglog_logit$fitted.values)^2)
 
-#probit data 
+#probit data
 
 sum((pi.probit-p_probit_probit_pred)^2)
 sum((pi.probit-probit_probit$fitted.values)^2)

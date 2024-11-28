@@ -1,5 +1,39 @@
 #' @title Example Usage of BayesPprobit Package
-#' @description Demonstrates basic usage of the package through examples
+#' @description Demonstrates basic usage of the package through comprehensive examples
+#' @return Returns invisibly a list containing:
+#'   \describe{
+#'     \item{basic_fit}{Results from basic model fitting using simulated data}
+#'     \item{coreset_results}{Results using different coreset methods}
+#'     \item{comparison}{Comparison tables of different methods}
+#'   }
+#' @examples
+#' \donttest{
+#' # Generate small example dataset
+#' set.seed(123)
+#' n <- 100  # smaller sample size for example
+#' d <- 5
+#' X <- matrix(rnorm(n * d), n, d)
+#' beta_true <- c(1.5, -0.8, 0.6, -0.4, 0.2)
+#' p_true <- 2
+#' eta <- X %*% beta_true
+#' alpha <- p_scale(p_true)
+#' prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
+#' y <- rbinom(n, 1, prob)
+#'
+#' # Fit basic model
+#' fit <- multi_chain(
+#'   n_sim = 1000,
+#'   burn_in = 200,
+#'   X = X,
+#'   y = y,
+#'   initial_theta = rep(0, d),
+#'   initial_p = 2,
+#'   n_chains = 2
+#' )
+#'
+#' # Print summary
+#' print(fit)
+#' }
 #' @export
 run_example <- function() {
   #------------------
@@ -22,7 +56,7 @@ run_example <- function() {
   # Generate response
   eta <- X %*% beta_true  # linear predictor
   alpha <- p_scale(p_true)  # scale parameter
-  prob <- gnorm::pgnorm(eta, mu = 0,  alpha = alpha, beta = p_true)
+  prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
   y <- stats::rbinom(n, 1, prob)
 
   #------------------------
@@ -47,6 +81,10 @@ run_example <- function() {
   # 3. Diagnostic Plots
   #------------------------
 
+  # Save old par settings
+  old_par <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(old_par))
+
   # Create diagnostic plots
   graphics::par(mfrow = c(2,2))
 
@@ -68,9 +106,6 @@ run_example <- function() {
                  main = "True vs Estimated Parameters")
   graphics::abline(0, 1, col = "red", lty = 2)
 
-  # Reset plot layout
-  graphics::par(mfrow = c(1,1))
-
   #------------------------
   # 4. Using Coresets
   #------------------------
@@ -79,8 +114,8 @@ run_example <- function() {
   n_large <- 50000
   X_large <- matrix(stats::rnorm(n_large * d), n_large, d)
   eta_large <- X_large %*% beta_true
-  prob_large <- p_pgnorm(eta_large, mu = 0, p = p_true, scale = alpha)
-  y_large <- stats::rbinom(n_large, 1, prob_large)
+  prob_large <- gnorm::pgnorm(eta_large, mu = 0, alpha = alpha, beta = p_true)
+    y_large <- stats::rbinom(n_large, 1, prob_large)
 
   # Compare different coreset methods
   methods <- c("leverage", "uniform", "oneshot")
@@ -134,7 +169,14 @@ run_example <- function() {
 }
 
 #' @title Load Example Results
-#' @description Loads pre-computed example results if available
+#' @description Loads pre-computed example results if available. Useful for quick
+#'   demonstrations and testing without running full examples.
+#' @return A list containing pre-computed results:
+#'   \describe{
+#'     \item{basic_fit}{Results from basic model fitting}
+#'     \item{coreset_results}{Results using different coreset methods}
+#'     \item{comparison}{Comparison tables of different methods}
+#'   }
 #' @export
 load_example_results <- function() {
   example_file <- system.file("examples", "example_results.rds",
@@ -145,6 +187,3 @@ load_example_results <- function() {
     stop("Example results not found. Run run_example() first.")
   }
 }
-
-# Run the example
-#run_example()

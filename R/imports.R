@@ -2,12 +2,11 @@
 
 #' @import stats
 #' @importFrom mvtnorm rmvnorm
-#' @importFrom gnorm dgnorm pgnorm qgnorm rgnorm
-#' @importFrom Matrix crossprod tcrossprod qr qr.Q qr.R solve
-#' @importFrom graphics par plot abline
+#' @importFrom gnorm dgnorm pgnorm qgnorm
+#' @importFrom Matrix crossprod qr qr.R solve
+#' @importFrom graphics par plot abline hist
 #' @importFrom methods is
-#' @importFrom coda mcmc mcmc.list gelman.diag effectiveSize geweke.diag
-#' @importFrom truncnorm rtruncnorm dtruncnorm ptruncnorm qtruncnorm
-#' @importFrom utils head tail str write.csv read.csv setTxtProgressBar txtProgressBar
-#' @importFrom ggplot2 ggplot aes geom_point geom_line theme_bw
+#' @importFrom coda mcmc mcmc.list gelman.diag
+#' @importFrom utils head tail setTxtProgressBar txtProgressBar
+#' @importFrom sirt lq_fit
 NULL

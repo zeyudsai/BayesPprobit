@@ -26,6 +26,7 @@ library(abind)
 library(bindata)
 library("pracma")
 library(bayestestR)
+library(sirt)
 
 
 #library("waddR")
@@ -37,7 +38,8 @@ library(bayestestR)
 #} # stopQuietly()
 #stopQuietly()
 
-multi_chain <- function(N_sim,burn_in,X, y,initial_theda,true_theta,Lp,M_iter,range,step,times){
+multi_chain <- function(N_sim,burn_in,X, y,initial_theda,true_theta,
+                        Lp,M_iter,range,step,times){
   initialtime <- proc.time()
   Beta_chain <- list()
   Lp_chain <- list()
@@ -265,21 +267,25 @@ return(list(posterior_data=df,result))
 
 
 proposal <- function(Lp,range,L){
-  p <- runif(1,min=max(min(range),(Lp-L)),max=min(max(range),(Lp+L)))
+  p <- runif(1,min=max(min(range),(Lp-L)),
+             max=min(max(range),(Lp+L)))
   return(p)
 }
 
 
 Metropolis <- function(X, M_iter, theta, Lp, tol=1e-40,range,L,z){
+
   Xb <- X%*%theta
   ehat <- z - Xb
-
   u <- runif(M_iter)
   for(i in 2:M_iter){
+
     proposed <- proposal(Lp,range,L)
 
-    R0 <- sum(log(dgnorm(ehat,alpha = p_scale(proposed),beta = proposed)+tol))
-    R1 <- sum(log(dgnorm(ehat,alpha = p_scale(Lp),beta = Lp)+tol))
+    R0 <- sum(log(dgnorm(ehat,alpha = p_scale(proposed),
+                         beta = proposed)+tol))
+    R1 <- sum(log(dgnorm(ehat,alpha = p_scale(Lp),
+                         beta = Lp)+tol))
     #R0 <- sum((pgnorm(Xb,alpha = p_scale(proposed),beta = proposed)))
     #R1 <- sum((pgnorm(Xb,alpha = p_scale(Lp),beta = Lp)))
     adj<- max(R0,R1)
@@ -341,7 +347,10 @@ Bayes_factor <- function(X,b,p,y){
 
 
 Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
-                                       X, y,initial_theda, true_theta=true_theta,Lp,M_iter,range,step){
+                                       X, y,initial_theda,
+                                       true_theta=true_theta,
+                                       Lp,
+                                       M_iter,range,step){
   D <- ncol(X)
   N <- nrow(X)
   L <- step
@@ -349,7 +358,9 @@ Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
   Q_0 <- diag(10, D)
   theta <- initial_theda
   z <- rep(0, N)
-  theta_chain <- matrix(0, nrow = N_sim, ncol = D)
+  theta_chain <- matrix(0,
+                        nrow = N_sim,
+                        ncol = D)
   Lp_chain <- rep(0, N_sim)
   chainlist <- list()
   prec_0 <- solve(Q_0)
@@ -363,7 +374,8 @@ Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
   initialtime <- proc.time()  # record classification time
   for (t in 2:N_sim) {
     # Update Mean of z
-    z <- latent_z(X,theta,y,Lp)
+    z <- latent_z(X, theta,
+                  y, Lp)
     #negative.z <- rgnorm(N0, mu = mu_z[y == 0],alpha = p_scale(Lp),beta=Lp)
     #negative.z[sign(negative.z) == 1] <- negative.z[sign(negative.z) == 1]*-1
     #z[y == 0] <- negative.z
@@ -371,7 +383,8 @@ Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
     #positive.z <- rgnorm(N1, mu = mu_z[y == 1],alpha = p_scale(Lp),beta=Lp)
     #positive.z[sign(positive.z) == -1] <- positive.z[sign(positive.z) ==-1]*-1
     #z[y == 1] <- positive.z
-     model <- lq_fit(y=z, X=X, pow=Lp, est_pow=F)
+     model <- lq_fit(y=z, X=X,
+                     pow=Lp, est_pow=F)
     # model <- lm(z~X)
      M <- model$coefficients
 
@@ -382,13 +395,21 @@ Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
     #theta <- c(rgnorm(1, mu=M, alpha = ,beta = Lp))
     for (i in 1:D) {
       # theta[i] <- rgnorm(1, mu=M[i], alpha =V2[i,i] , beta = Lp)
-      theta[i] <- rgnorm(1, mu=M[i], alpha =V2[i,i], beta = Lp)
+      theta[i] <- rgnorm(1, mu=M[i],
+                         alpha =V2[i,i],
+                         beta = Lp)
 
     }
     # theta <- c(rmvnorm(1, M, V))
     # Store the \theta draws
     theta_chain[t, ] <- theta
-    Lp <- Metropolis(X=X,theta = theta,Lp=Lp,range = range,L=L,M_iter=M_iter,z=z)
+    Lp <- Metropolis(X=X,
+                     theta = theta,
+                     Lp=Lp,
+                     range = range,
+                     L=L,
+                     M_iter=M_iter,
+                     z=z)
 
     Lp_chain[t] <- Lp
     if(as.integer(100 * (t/N_sim)) == as.numeric(100 * (t/N_sim)))
@@ -401,6 +422,7 @@ Metropolis_Lp_gibbssampler <- function(N_sim,burn_in,
                      "true_theta"=true_theta, "post.mean"=post.mean,"Lp"=Lp_chain,"Lp.mean"=p.mean)                    # record classification time
   return(chainlist)
 }
+
 
 ucomplex <- function(Xb){
   u <- norm(as.matrix(Xb[Xb>0]),type = "1")/norm(as.matrix(Xb[Xb<0]),type="1")
@@ -605,13 +627,6 @@ polynomial_kernel <- function(x_1, x_2){
 mmd <- function(sample_x, sample_y){
   m <- length(sample_x)
   n <- length(sample_y)
-
-  #sample_x = np.ascontiguousarray(sample_x)
-
-  #Computes an estimate of the maximum mean discrepancy between sample_1 and sample_2.
-  #See https://arxiv.org/abs/0805.2368 for more info.
-
-  #sample_y = np.ascontiguousarray(sample_y)
 
 sum_x = 0
 for (i in 1:m) {

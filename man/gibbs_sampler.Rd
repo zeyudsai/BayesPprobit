@@ -13,7 +13,8 @@ gibbs_sampler(
   initial_p,
   mh_iter,
   p_range,
-  step_size
+  step_size,
+  fix_p = FALSE
 )
 }
 \arguments{

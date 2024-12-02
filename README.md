@@ -119,7 +119,7 @@ If you use **BayesPprobit** in your research or publications, please cite it as 
 citation("BayesPprobit")
 ```
 
-You can also visit [LICENSE](https://github.com/zeyudsai/BayesPprobit/blob/main/inst/CITATION) This will provide the appropriate citation information, including authors and version number.
+You can also visit [CITATION](https://github.com/zeyudsai/BayesPprobit/blob/main/inst/CITATION) This will provide the appropriate citation information, including authors and version number.
 
 ## License
 

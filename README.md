@@ -20,10 +20,11 @@ Key features of **BayesPprobit** include:
 ## Installation
 
 You can install the stable version of **BayesPprobit** from CRAN:
-
 ```r
 install.packages("BayesPprobit")
 ```
+
+> **Note:** The CRAN release is currently pending final unit tests and edge case validation. The package will be submitted to CRAN upon completion. Please use the following installation.
 
 Or install the development version from GitHub to access the latest features and updates:
 

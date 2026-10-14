@@ -1,12 +1,12 @@
-# prior_normal()      # validates Normal parameters + creates classed object
-# prior_student_t()   # validates Student-t parameters + creates classed object
-
-# validate_prior()    # only checks that it is a BayesPprobit prior object
-# prior_type_code()   # translates family to 1L / 2L
-# stan_p_probit()     # performs validation checks, creates the Stan data,
-                      # locates the Stan file, compiles it, and samples
-################################################################################
-
+#' Normal prior specification
+#'
+#' Creates a Normal prior specification for use with [stan_p_probit()].
+#'
+#' @param location Location parameter of the Normal distribution.
+#' @param scale Positive scale parameter.
+#'
+#' @return An object of class `"BayesPprobit_prior"`.
+#' @export
 prior_normal <- function(location = 0, scale = 2.5) {
   # validation #
   if (!is.numeric(location) || length(location) != 1 || !is.finite(location)) {
@@ -30,6 +30,16 @@ prior_normal <- function(location = 0, scale = 2.5) {
   )
 }
 
+#' Student-t prior specification
+#'
+#' Creates a Student-t prior specification for use with [stan_p_probit()].
+#'
+#' @param df Positive degrees of freedom.
+#' @param location Location parameter.
+#' @param scale Positive scale parameter.
+#'
+#' @return An object of class `"BayesPprobit_prior"`.
+#' @export
 prior_student_t <- function(df = 3, location = 0, scale = 2.5) {
   # validation #
   if (!is.numeric(location) || length(location) != 1 || !is.finite(location)) {
@@ -81,6 +91,31 @@ validate_prior <- function(prior, name) {
   }
 }
 
+#' Fit a p-generalized probit regression model using Stan
+#'
+#' Fits a Bayesian p-generalized probit regression model using
+#' CmdStanR and Hamiltonian Monte Carlo with the NUTS algorithm.
+#'
+#' @param X Numeric design matrix.
+#' @param y Binary outcome vector containing only 0 and 1.
+#' @param prior_intercept Prior specification for the intercept.
+#' @param prior_beta Prior specification for the regression coefficients.
+#' @param p_bounds Numeric vector of length two giving the lower and upper
+#'   bounds for p.
+#' @param chains Number of Markov chains.
+#' @param parallel_chains Number of chains to run in parallel.
+#' @param iter_warmup Number of warmup iterations per chain.
+#' @param iter_sampling Number of post-warmup iterations per chain.
+#' @param seed Random seed.
+#' @param max_treedepth Maximum tree depth for NUTS.
+#' @param metric Character string specifying the HMC metric (inverse mass
+#'   matrix structure). Common choices are `"diag_e"` for a diagonal metric
+#'   and `"dense_e"` for a dense metric.
+#' @param ... Additional arguments passed to `CmdStanModel$sample()`.
+#'
+#' @return A `CmdStanMCMC` object.
+#'
+#' @export
 stan_p_probit <- function(
     X,
     y,

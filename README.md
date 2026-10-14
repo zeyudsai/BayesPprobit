@@ -12,7 +12,7 @@
 Key features of **BayesPprobit** include:
 
 - **Flexible Modeling**: Supports the p-generalized probit model, allowing for robustness to outliers and heavy-tailed data by adjusting the shape parameter \( p \).
-- **Efficient MCMC Sampling**: Implements Metropolis-Hastings within Gibbs sampling for posterior inference, optimized for performance.
+- **Flexible MCMC Sampling**: Provides Metropolis-Hastings within Gibbs sampling as well as Stan-based inference using the No-U-Turn Sampler (NUTS), an adaptive Hamiltonian Monte Carlo algorithm.
 - **Coreset Integration**: Incorporates coreset construction methods to reduce data size while preserving essential statistical properties, enabling scalable inference on massive datasets.
 - **Diagnostic Tools**: Provides functions for convergence diagnostics, posterior summary statistics, and visualization of MCMC results.
 - **Easy-to-Use Interface**: Designed with a user-friendly API that integrates seamlessly with existing R workflows.
@@ -45,18 +45,20 @@ library(BayesPprobit)
 
 # Simulate some data
 set.seed(123)
-n <- 1000  # Number of observations
-d <- 5     # Number of predictors
+n <- 1000   # Number of observations
+d <- 5      # Number of predictors
 X <- matrix(rnorm(n * d), n, d)
 beta_true <- c(1.5, -0.8, 0.6, -0.4, 0.2)
+intercept_true <- 0
 p_true <- 2
-eta <- X %*% beta_true
+eta <- intercept_true + X %*% beta_true
 alpha <- p_scale(p_true)
 prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
 y <- rbinom(n, 1, prob)
 
-# Fit the Bayesian p-generalized probit model
-fit <- multi_chain(
+# Fit the Bayesian p-generalized probit model using the Gibbs sampler
+
+fit_gibbs <- multi_chain(
   n_sim = 5000,
   burn_in = 1000,
   X = X,
@@ -69,11 +71,27 @@ fit <- multi_chain(
   n_chains = 3
 )
 
+# Fit the Bayesian p-generalized probit model using Stan/NUTS
+
+fit_stan <- stan_p_probit(
+  X = X,
+  y = y,
+  prior_intercept = prior_normal(0, 5),
+  prior_beta = prior_normal(0, 2.5),
+  p_bounds = c(1, 6),
+  chains = 4,
+  iter_warmup = 500,
+  iter_sampling = 1000,
+  seed = 123,
+  max_treedepth = 12
+)
+
 # Print a summary of the results
-print(fit)
+print(fit_gibbs)
+print(fit_stan)
 
 # Plot diagnostic plots
-plot(fit)
+plot(fit_gibbs)
 ```
 
 For more detailed examples and advanced usage, please refer to the package vignette:
@@ -87,9 +105,10 @@ vignette("BayesPprobit")
 - **Bayesian Inference for Probit Models**: Implements a Bayesian approach to probit regression, allowing uncertainty quantification and incorporation of prior information.
 - **p-Generalized Distribution**: Utilizes the p-generalized normal distribution to model the latent variables, offering flexibility in capturing data characteristics.
 - **Metropolis-Hastings within Gibbs Sampling**: Employs efficient MCMC algorithms for sampling from complex posterior distributions.
+- **Stan-Based Inference**: Supports posterior sampling with the No-U-Turn Sampler (NUTS), an adaptive Hamiltonian Monte Carlo algorithm, via CmdStanR.
 - **Coreset Methods**: Supports various coreset construction techniques such as leverage score sampling, uniform sampling, and oneshot methods to handle large datasets.
-- **Convergence Diagnostics**: Integrates with the `coda` package for convergence assessment using Gelman-Rubin diagnostics and other MCMC diagnostic tools.
-- **Visualization**: Provides functions for trace plots, posterior density plots, and comparison of true vs. estimated parameters.
+- **Convergence Diagnostics**: Supports convergence assessment for the Gibbs sampler through `coda`, while Stan fits provide the diagnostics available through CmdStanR, including \(\hat R\), effective sample sizes, divergences, and HMC diagnostics.
+- **Visualization**: Provides visualization tools for MCMC output.
 
 ## Documentation
 

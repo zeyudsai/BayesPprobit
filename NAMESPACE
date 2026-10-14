@@ -6,28 +6,41 @@ export(compute_coreset)
 export(load_example_results)
 export(multi_chain)
 export(p_scale)
+export(prior_normal)
+export(prior_student_t)
 export(run_example)
+export(stan_p_probit)
 export(update_p)
 import(stats)
-importFrom(Matrix,crossprod)
-importFrom(Matrix,qr)
-importFrom(Matrix,qr.R)
-importFrom(Matrix,solve)
-importFrom(coda,gelman.diag)
-importFrom(coda,mcmc)
-importFrom(coda,mcmc.list)
-importFrom(gnorm,dgnorm)
-importFrom(gnorm,pgnorm)
-importFrom(gnorm,qgnorm)
-importFrom(graphics,abline)
-importFrom(graphics,hist)
-importFrom(graphics,par)
-importFrom(graphics,plot)
+importFrom(Matrix,
+  crossprod,
+  qr,
+  qr.R,
+  solve
+)
+importFrom(coda,
+  gelman.diag,
+  mcmc,
+  mcmc.list
+)
+importFrom(gnorm,
+  dgnorm,
+  pgnorm,
+  qgnorm
+)
+importFrom(graphics,
+  abline,
+  hist,
+  par,
+  plot
+)
 importFrom(methods,is)
 importFrom(mvtnorm,rmvnorm)
 importFrom(sirt,lq_fit)
-importFrom(utils,head)
-importFrom(utils,setTxtProgressBar)
-importFrom(utils,str)
-importFrom(utils,tail)
-importFrom(utils,txtProgressBar)
+importFrom(utils,
+  head,
+  setTxtProgressBar,
+  str,
+  tail,
+  txtProgressBar
+)

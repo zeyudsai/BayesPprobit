@@ -36,6 +36,16 @@ install.packages("devtools")
 devtools::install_github("zeyudsai/BayesPprobit")
 ```
 
+### Stan backend
+
+The Stan-based implementation requires CmdStanR and a working installation of CmdStan.
+
+If CmdStan is not already installed, it can be installed using:
+
+```r
+cmdstanr::install_cmdstan()
+```
+
 ## Usage
 
 Below is a basic example demonstrating how to use **BayesPprobit** for Bayesian p-generalized probit regression:
@@ -86,14 +96,16 @@ fit_stan <- stan_p_probit(
   max_treedepth = 12
 )
 
-# Print a summary of the results
+# Summarize results
 print(fit_gibbs)
-print(fit_stan)
+fit_stan$summary()
 
-# Plot diagnostic plots
+# Stan diagnostics
+fit_stan$diagnostic_summary()
+
+# Plot Gibbs sampler output
 plot(fit_gibbs)
 ```
-
 For more detailed examples and advanced usage, please refer to the package vignette:
 
 ```r
@@ -121,6 +133,9 @@ Comprehensive documentation is available for all functions within the package. A
 # For specific functions
 ?multi_chain
 ?gibbs_sampler
+?stan_p_probit
+?prior_normal
+?prior_student_t
 ```
 
 ## Support and Contributions

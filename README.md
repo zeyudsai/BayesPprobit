@@ -62,8 +62,8 @@ beta_true <- c(1.5, -0.8, 0.6, -0.4, 0.2)
 intercept_true <- 0
 p_true <- 2
 eta <- intercept_true + X %*% beta_true
-alpha <- p_scale(p_true)
-prob <- gnorm::pgnorm(eta, mu = 0, alpha = alpha, beta = p_true)
+scale_p <- p_scale(p_true)
+prob <- gnorm::pgnorm(eta, mu = 0, alpha = scale_p, beta = p_true)
 y <- rbinom(n, 1, prob)
 
 # Fit the Bayesian p-generalized probit model using the Gibbs sampler
@@ -106,10 +106,11 @@ fit_stan$diagnostic_summary()
 # Plot Gibbs sampler output
 plot(fit_gibbs)
 ```
-For more detailed examples and advanced usage, please refer to the package vignette:
+For more detailed examples and advanced usage, please refer to the package vignettes:
 
 ```r
 vignette("BayesPprobit")
+vignette("stan-p-probit")
 ```
 
 ## Features

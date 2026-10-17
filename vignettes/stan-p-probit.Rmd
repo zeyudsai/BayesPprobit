@@ -1,0 +1,195 @@
+---
+title: "Bayesian p-Generalized Probit Regression with Stan"
+author: "Samuel Trippler"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bayesian p-Generalized Probit Regression with Stan}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+library(BayesPprobit)
+```
+
+## Introduction
+
+The **BayesPprobit** package implements Bayesian \(p\)-generalized probit regression using either a Metropolis-Hastings within Gibbs sampler or Stan. The Stan implementation employs the No-U-Turn Sampler (NUTS), an adaptive Hamiltonian Monte Carlo algorithm, for posterior inference in binary regression models with a flexible link function controlled by the shape parameter \(p\).
+
+In addition to the regression coefficients, the Stan model includes an intercept \(\alpha\), allowing the model to account for the baseline probability of the outcome. The main function, `stan_p_probit()`, allows users to specify Normal or Student-\(t\) priors independently for the intercept and regression coefficients, as well as the bounds of the uniform prior on \(p\).
+
+This vignette demonstrates how to fit the model using Stan, configure prior distributions and sampling parameters, and assess posterior convergence and computational diagnostics.
+
+## Installation and setup
+
+The Stan implementation is based on CmdStanR, which provides the interface to Stan, and therefore requires the **cmdstanr** package to be installed. CmdStanR itself needs a working installation of CmdStan, the underlying software that compiles and runs Stan models. CmdStanR can be installed from the Stan R-universe repository:
+
+```{r eval=FALSE}
+install.packages(
+  "cmdstanr",
+  repos = c("https://stan-dev.r-universe.dev", getOption("repos"))
+)
+```
+
+Next, check whether the required C++ toolchain is available:
+
+```{r eval=FALSE}
+cmdstanr::check_cmdstan_toolchain()
+```
+
+If the toolchain is correctly configured, install CmdStan:
+
+```{r eval=FALSE}
+cmdstanr::install_cmdstan()
+```
+
+The installation can be verified using:
+
+```{r eval=FALSE}
+cmdstanr::cmdstan_version()
+```
+
+Users who already have CmdStanR and CmdStan installed can skip these steps.
+
+For further information, including operating-system-specific requirements, consult the [official CmdStanR documentation](https://mc-stan.org/cmdstanr/).
+
+## An example
+
+This example uses simulated data to showcase how to use the main function `stan_p_probit()`.
+
+### Simulate the data
+
+```{r, eval = FALSE}
+# Generate example data
+set.seed(42)
+n <- 200
+d <- 3
+
+# Design matrix
+X <- matrix(rnorm(n*d), nrow = n, ncol = d)
+
+# True parameters
+beta_true <- c(0.5, -1.0, 1.5)
+p_true <- 2
+intercept_true <- 0
+
+# Generate response
+eta <- intercept_true + X %*% beta_true
+scale_p <- p_scale(p_true)
+prob <- gnorm::pgnorm(eta, mu = 0, alpha = scale_p, beta = p_true)
+y <- rbinom(n, 1, prob)
+
+```
+
+**Note**: The function `gnorm::pgnorm()` evaluates the cumulative distribution function of the generalized normal distribution. To match the parameterization used in `stan_p_probit()`, its scale parameter must be set to \( p^{1/p} \). This is implemented above using scale_p, which should not be confused with the regression intercept \( \alpha \).
+
+### Fit the model
+
+```{r, eval = FALSE}
+# With a normal prior on both the intercept and the predictors
+fit_normal <- stan_p_probit(
+  X = X,
+  y = y,
+  prior_intercept = prior_normal(0, 5),
+  prior_beta = prior_normal(0, 2.5),
+  p_bounds = c(1, 6),
+  chains = 3,
+  iter_warmup = 1000,
+  iter_sampling = 1000,
+  seed = 42,
+  save_warmup = TRUE # Save warmup draws for diagnostic visualization
+)
+
+# With a Student-t prior on both the intercept and the predictors
+fit_studentt <- stan_p_probit(
+  X = X,
+  y = y,
+  prior_intercept = prior_student_t(df = 4, location = 0, scale = 5),
+  prior_beta = prior_student_t(df = 4, location = 0, scale = 3),
+  p_bounds = c(1, 6),
+  chains = 3,
+  iter_warmup = 1000,
+  iter_sampling = 1000,
+  seed = 42
+)
+```
+
+The shape parameter \( p \) is assigned a uniform prior on the interval specified by `p_bounds`. By default, `stan_p_probit()` uses `p_bounds = c(1, 6)`. This choice reflects computational considerations, as sampling can become expensive for small values of \( p \). Users interested in values below 1 can specify a smaller lower bound, although this will increase computation time. The bounds should be chosen based on the application and checked through prior sensitivity analysis.
+
+**Note**: Normal and Student-\( t \) priors can also be combined, for example by specifying a Normal prior for the intercept and a Student-\( t \) prior for the regression coefficients.
+
+
+
+### Examine the results
+
+The posterior summaries can be obtained using:
+
+```{r, eval = FALSE}
+fit_normal$summary()
+```
+
+The summary includes posterior means, medians, standard deviations, credible interval quantiles, and convergence diagnostics. Values of \( \hat R \) should preferably be below 1.01. As a general guideline, bulk and tail effective sample sizes should be at least approximately 100 per chain, with larger values providing more precise Monte Carlo estimates.
+
+Additional HMC diagnostics can be obtained using:
+
+```{r, eval = FALSE}
+fit_normal$diagnostic_summary()
+```
+
+Ideally, there should be no divergent transitions. E-BFMI values below approximately 0.3 can indicate difficulties exploring the Hamiltonian energy distribution. Maximum-treedepth hits indicate that NUTS is reaching the allowed trajectory length. Users should investigate sampling efficiency before increasing `max_treedepth`, since doing so can substantially increase computation time.
+
+Trace plots provide a visual assessment of mixing and potential non-stationarity:
+
+```{r, eval = FALSE}
+draws <- fit_normal$draws(c("p", "alpha"), inc_warmup = TRUE)
+bayesplot::mcmc_trace(draws, n_warmup = 1000)
+```
+
+This example includes warmup iterations because the model was fitted with `save_warmup = TRUE`. Ideally, chains should explore similar regions of the posterior without persistent trends or long periods of stagnation. Trace plots should always be interpreted alongside numerical convergence diagnostics.
+
+Posterior summaries under the Student-t priors can be inspected using:
+
+```{r, eval = FALSE}
+fit_studentt$summary("p")
+fit_studentt$summary("alpha")
+fit_studentt$summary("beta")
+```
+
+The posterior distribution of \(p\) should be examined for substantial concentration near the imposed bounds. For example:
+
+```{r, eval = FALSE}
+bayesplot::mcmc_dens(fit_normal$draws("p"))
+```
+
+If considerable posterior mass accumulates near a boundary, users should consider adjusting `p_bounds` and refitting to assess prior sensitivity.
+
+Low bulk or tail ESS values can sometimes be improved by increasing the number of sampling iterations. However, persistent sampling difficulties may indicate problematic posterior geometry, in which case alternative sampler settings, prior specifications, or mass-matrix structures should be investigated.
+
+### Sampling configuration
+
+The `stan_p_probit()` function provides several options for controlling the NUTS sampling algorithm. Two relevant settings are `metric` and `adapt_delta`.
+
+The `metric` argument determines the structure of the inverse mass matrix used by HMC. The diagonal metric (`"diag_e"`) accounts for differences in scale between parameters, whereas the dense metric (`"dense_e"`) additionally accounts for linear correlations between parameters. The default in `stan_p_probit()` is `"dense_e"`, which showed improved computational efficiency and convergence diagnostics in the numerical experiments motivating this implementation. However, the dense metric requires estimation of a full matrix during warmup and may be less advantageous for models with many parameters.
+
+The `adapt_delta` argument controls the target acceptance probability used during step-size adaptation. CmdStanR uses a default value of 0.8. Increasing this value generally results in smaller integration step sizes and can help reduce divergent transitions, although it may increase computation time. Users encountering divergences may consider increasing `adapt_delta`, for example to 0.95, while also investigating potential problems with the posterior geometry.
+
+Additional CmdStanR sampling arguments, such as `adapt_delta`, can be passed to `stan_p_probit()` through the ... argument:
+
+```{r, eval = FALSE}
+fit <- stan_p_probit(
+  X = X,
+  y = y,
+  metric = "dense_e",
+  adapt_delta = 0.95
+)
+```
+
+Users should inspect convergence and HMC diagnostics before changing sampling settings. Further information is available in the [CmdStanR documentation](https://mc-stan.org/cmdstanr/reference/model-method-sample.html).
+

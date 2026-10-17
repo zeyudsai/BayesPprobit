@@ -134,6 +134,13 @@ stan_p_probit <- function(
 
   ######################## validation ##########################################
 
+  if (!requireNamespace("cmdstanr", quietly = TRUE)) {
+    stop(
+      "The Stan backend requires 'cmdstanr'. ",
+      "Please install it from https://stan-dev.r-universe.dev."
+    )
+  }
+
   if (!is.matrix(X) || !is.numeric(X)) {
     stop("'X' is either not numeric or not a matrix. Please fix that.")
   }

@@ -139,8 +139,8 @@ The parameter \( p \) controls the tail behavior:
 
 - \( p = 1 \): Similar to logistic regression
 - \( p = 2 \): Standard probit regression
-- \( p > 2 \): Heavier tails
-- \( p < 2 \): Lighter tails
+- \( p < 2 \): Heavier tails
+- \( p > 2 \): Lighter tails
 
 ### MCMC Sampling
 

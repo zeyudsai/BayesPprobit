@@ -119,12 +119,24 @@ fit_studentt <- stan_p_probit(
   iter_sampling = 1000,
   seed = 42
 )
+
+# With a normal prior on the intercept and a Laplace prior on the predictors
+fit_mix <- stan_p_probit(
+  X = X,
+  y = y,
+  prior_intercept = prior_normal(0, 5),
+  prior_beta = prior_laplace(0, 3),
+  p_bounds = c(1, 6),
+  chains = 3,
+  iter_warmup = 1000,
+  iter_sampling = 1000,
+  seed = 42
+)
 ```
 
 The shape parameter \( p \) is assigned a uniform prior on the interval specified by `p_bounds`. By default, `stan_p_probit()` uses `p_bounds = c(1, 6)`. This choice reflects computational considerations, as sampling can become expensive for small values of \( p \). Users interested in values below 1 can specify a smaller lower bound, although this will increase computation time. The bounds should be chosen based on the application and checked through prior sensitivity analysis.
 
-**Note**: Normal and Student-\( t \) priors can also be combined, for example by specifying a Normal prior for the intercept and a Student-\( t \) prior for the regression coefficients.
-
+**Note**: In addition to Normal and Student-\(t\) priors, `stan_p_probit()` supports Laplace priors through `prior_laplace()`. The Laplace distribution allows both positive and negative coefficients and places relatively more prior density near its location parameter than a Normal distribution with comparable variance. A zero-centered Laplace prior can therefore be useful for shrinking regression coefficients toward zero.
 
 
 ### Examine the results
@@ -133,6 +145,7 @@ The posterior summaries can be obtained using:
 
 ```{r, eval = FALSE}
 fit_normal$summary()
+fit_mix$summary()
 ```
 
 The summary includes posterior means, medians, standard deviations, credible interval quantiles, and convergence diagnostics. Values of \( \hat R \) should preferably be below 1.01. As a general guideline, bulk and tail effective sample sizes should be at least approximately 100 per chain, with larger values providing more precise Monte Carlo estimates.
@@ -141,6 +154,7 @@ Additional HMC diagnostics can be obtained using:
 
 ```{r, eval = FALSE}
 fit_normal$diagnostic_summary()
+fit_mix$diagnostic_summary()
 ```
 
 Ideally, there should be no divergent transitions. E-BFMI values below approximately 0.3 can indicate difficulties exploring the Hamiltonian energy distribution. Maximum-treedepth hits indicate that NUTS is reaching the allowed trajectory length. Users should investigate sampling efficiency before increasing `max_treedepth`, since doing so can substantially increase computation time.

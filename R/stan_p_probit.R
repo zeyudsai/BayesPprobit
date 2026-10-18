@@ -10,12 +10,12 @@
 prior_normal <- function(location = 0, scale = 2.5) {
   # validation #
   if (!is.numeric(location) || length(location) != 1 || !is.finite(location)) {
-    stop("'location' must be a finite real number.")
+    stop("`location` must be a finite real number.")
   }
 
   if (!is.numeric(scale) || length(scale) != 1 ||
       !is.finite(scale) || scale <= 0) {
-    stop("'scale' must be a positive finite real number.")
+    stop("`scale` must be a positive finite real number.")
   }
 
   # makes a BayesPprobit_prior object #
@@ -43,16 +43,16 @@ prior_normal <- function(location = 0, scale = 2.5) {
 prior_student_t <- function(df = 3, location = 0, scale = 2.5) {
   # validation #
   if (!is.numeric(location) || length(location) != 1 || !is.finite(location)) {
-    stop("'location' must be a finite real number.")
+    stop("`location` must be a finite real number.")
   }
 
   if (!is.numeric(scale) || length(scale) != 1 ||
       !is.finite(scale) || scale <= 0) {
-    stop("'scale' must be a positive finite real number.")
+    stop("`scale` must be a positive finite real number.")
   }
 
   if (!is.numeric(df) || length(df) != 1 || !is.finite(df) || df <= 0) {
-    stop("'df' is the prior's number of degrees of freedom and must therefore be
+    stop("`df` is the prior's number of degrees of freedom and must therefore be
          a positive finite real number.")
   }
 
@@ -68,14 +68,47 @@ prior_student_t <- function(df = 3, location = 0, scale = 2.5) {
   )
 }
 
+#' Laplace prior specification
+#'
+#' Creates a Laplace prior specification for use with [stan_p_probit()].
+#'
+#' @param location Location parameter of the Laplace distribution.
+#' @param scale Positive scale parameter.
+#'
+#' @return An object of class `"BayesPprobit_prior"`.
+#' @export
+prior_laplace <- function(location = 0, scale = 1) {
+  # validation #
+  if (!is.numeric(location) || length(location) != 1 || !is.finite(location)) {
+    stop("`location` must be a finite real number.")
+  }
+
+  if (!is.numeric(scale) || length(scale) != 1 ||
+      !is.finite(scale) || scale <= 0) {
+    stop("`scale` must be a positive finite real number.")
+  }
+
+  # makes a BayesPprobit_prior object #
+  structure(
+    list(
+      family = "laplace",
+      location = location,
+      scale = scale,
+      df = 1
+    ),
+    class = "BayesPprobit_prior"
+  )
+}
+
 prior_type_code <- function(prior, name = "prior") {
   switch(
     prior$family,
     normal = 1L,
     student_t = 2L,
+    laplace = 3L,
     stop(sprintf(
-      "'%s' uses an unsupported prior family: %s. You can only choose a normal or
-      a Student's t-distribution.",
+      "`%s` uses an unsupported prior family: %s. You can only choose a normal,
+      a Student's t- or a Laplace distribution.",
       name,
       prior$family
       ))
@@ -85,7 +118,8 @@ prior_type_code <- function(prior, name = "prior") {
 validate_prior <- function(prior, name) {
   if (!inherits(prior, "BayesPprobit_prior")) {
     stop(sprintf(
-      "'%s' must be created with 'prior_normal()' or 'prior_student_t()'.",
+      "`%s` must be created with `prior_normal()`, `prior_student_t()`, or
+      `prior_laplace()`.",
       name
     ))
   }
@@ -136,22 +170,22 @@ stan_p_probit <- function(
 
   if (!requireNamespace("cmdstanr", quietly = TRUE)) {
     stop(
-      "The Stan backend requires 'cmdstanr'. ",
+      "The Stan backend requires `cmdstanr`. ",
       "Please install it from https://stan-dev.r-universe.dev."
     )
   }
 
   if (!is.matrix(X) || !is.numeric(X)) {
-    stop("'X' is either not numeric or not a matrix. Please fix that.")
+    stop("`X` is either not numeric or not a matrix. Please fix that.")
   }
 
   if (anyNA(X)) {
-    stop("I'm sorry to inform you that 'X' contains missing values. I can't handle
+    stop("I'm sorry to inform you that `X` contains missing values. I can't handle
          that.")
   }
 
   if (length(y) != nrow(X)) {
-    stop("Obviously, the length of 'y' should equal the number of rows in 'X'.
+    stop("Obviously, the length of `y` should equal the number of rows in `X`.
          Right now, it does not.")
   }
 
@@ -164,7 +198,7 @@ stan_p_probit <- function(
   }
 
   if(!all(y %in% c(0, 1))) {
-  stop("'y' needs to be a binary variable, fam.")
+  stop("`y` needs to be a binary variable, fam.")
   }
 
   if (!is.numeric(p_bounds) ||
@@ -173,7 +207,7 @@ stan_p_probit <- function(
       any(!is.finite(p_bounds)) ||
       p_bounds[1] <= 0 ||
       p_bounds[1] >= p_bounds[2]) {
-    stop("'p_bounds' must contain two finite numbers with 0 < lower < upper.
+    stop("`p_bounds` must contain two finite numbers with 0 < lower < upper.
     But I'm sure you know this and it was just a typo.")
   }
 

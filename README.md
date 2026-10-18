@@ -87,7 +87,7 @@ fit_stan <- stan_p_probit(
   X = X,
   y = y,
   prior_intercept = prior_normal(0, 5),
-  prior_beta = prior_normal(0, 2.5),
+  prior_beta = prior_student_t(4, 0, 3),
   p_bounds = c(1, 6),
   chains = 4,
   iter_warmup = 500,
@@ -137,6 +137,7 @@ Comprehensive documentation is available for all functions within the package. A
 ?stan_p_probit
 ?prior_normal
 ?prior_student_t
+?prior_laplace
 ```
 
 ## Support and Contributions
